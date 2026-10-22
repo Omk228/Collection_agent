@@ -1,0 +1,234 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Light Theme Palette - Fund Lelo Brand */
+  --background: #faf7fd;
+  --foreground: #1a0f2e;
+  --card: #ffffff;
+  --card-foreground: #1a0f2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a0f2e;
+
+  /* Brand Primary (Royal Fund Lelo Purple & Deep Violet) */
+  --primary: #6d28d9;
+  --primary-hover: #472385;
+  --primary-foreground: #ffffff;
+
+  /* Brand Accents (Vibrant Magenta & Rose) */
+  --brand-purple: #472385;
+  --brand-magenta: #d14493;
+
+  /* Surfaces & Neutrals */
+  --secondary: #f3e8ff;
+  --secondary-foreground: #4c1d95;
+  --muted: #faf5ff;
+  --muted-foreground: #7e6e91;
+  --border: #e9d8fd;
+  --input: #e9d8fd;
+  --input-background: #ffffff;
+  --ring: rgba(109, 40, 217, 0.35);
+
+  /* Functional States */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --radius: 0.75rem; /* 12px */
+
+  /* UI Compatibility Tokens */
+  --font-size: 15px;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --accent: #fdf2f8;
+  --accent-foreground: #be185d;
+  --switch-background: #d8b4fe;
+  --chart-1: #6d28d9;
+  --chart-2: #d14493;
+  --chart-3: #10b981;
+  --chart-4: #f59e0b;
+  --chart-5: #a855f7;
+  --sidebar: #170b28;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2b144a;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: rgba(168, 85, 247, 0.2);
+  --sidebar-ring: rgba(109, 40, 217, 0.35);
+}
+
+/* Dark Theme Palette (Fund Lelo Deep Royal Violet Night) */
+.dark {
+  --background: #0c0717;
+  --foreground: #f1e8ff;
+  --card: #150d26;
+  --card-foreground: #f8f4ff;
+  --popover: #1c1233;
+  --popover-foreground: #f8f4ff;
+
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-foreground: #ffffff;
+
+  --brand-purple: #472385;
+  --brand-magenta: #d14493;
+
+  --secondary: #24163d;
+  --secondary-foreground: #d8b4fe;
+  --muted: #1c1130;
+  --muted-foreground: #9d8eb5;
+  --border: rgba(168, 85, 247, 0.18);
+  --input: rgba(168, 85, 247, 0.22);
+  --input-background: #150d26;
+  --ring: rgba(139, 92, 246, 0.45);
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+
+  --accent: #2a1438;
+  --accent-foreground: #f472b6;
+  --switch-background: #2d1b4d;
+  --chart-1: #8b5cf6;
+  --chart-2: #d14493;
+  --chart-3: #10b981;
+  --chart-4: #f59e0b;
+  --chart-5: #c084fc;
+  --sidebar: #0c0717;
+  --sidebar-foreground: #f1e8ff;
+  --sidebar-primary: #8b5cf6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #24163d;
+  --sidebar-accent-foreground: #f8f4ff;
+  --sidebar-border: rgba(168, 85, 247, 0.18);
+  --sidebar-ring: rgba(139, 92, 246, 0.45);
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: var(--radius);
+  --radius-2xl: 1rem;
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+

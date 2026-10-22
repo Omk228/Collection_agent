@@ -1,0 +1,52 @@
+/* Fund Lelo Unified Design Tokens */
+:root {
+  --background: #faf7fd;
+  --foreground: #1a0f2e;
+  --card: #ffffff;
+  --card-foreground: #1a0f2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a0f2e;
+  --primary: #6d28d9;
+  --primary-hover: #472385;
+  --primary-foreground: #ffffff;
+  --brand-purple: #472385;
+  --brand-magenta: #d14493;
+  --secondary: #f3e8ff;
+  --secondary-foreground: #4c1d95;
+  --muted: #faf5ff;
+  --muted-foreground: #7e6e91;
+  --border: #e9d8fd;
+  --input: #e9d8fd;
+  --input-background: #ffffff;
+  --ring: rgba(109, 40, 217, 0.35);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: #0c0717;
+  --foreground: #f1e8ff;
+  --card: #150d26;
+  --card-foreground: #f8f4ff;
+  --popover: #1c1233;
+  --popover-foreground: #f8f4ff;
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-foreground: #ffffff;
+  --brand-purple: #472385;
+  --brand-magenta: #d14493;
+  --secondary: #24163d;
+  --secondary-foreground: #d8b4fe;
+  --muted: #1c1130;
+  --muted-foreground: #9d8eb5;
+  --border: rgba(168, 85, 247, 0.18);
+  --input: rgba(168, 85, 247, 0.22);
+  --input-background: #150d26;
+  --ring: rgba(139, 92, 246, 0.45);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+}
+

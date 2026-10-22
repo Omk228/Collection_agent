@@ -1,0 +1,248 @@
+/* Global CSS - Tokens are managed in theme.css and fonts.css */
+
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* ==========================================================================
+   Leaflet & Live Route Map Custom Styles
+   ========================================================================== */
+@import 'leaflet/dist/leaflet.css';
+
+/* Clean UI: Hide default Leaflet attribution banner */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* Reposition Zoom Controls cleanly */
+.leaflet-bottom.leaflet-right .leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  margin-bottom: 24px !important;
+  margin-right: 14px !important;
+}
+
+.leaflet-control-zoom a {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 2. Agent GPS Beacon (Live Turn-by-Turn Tracking) */
+.leaflet-agent-marker-container {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+@keyframes agentRadarPulse {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.custom-agent-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-pulse-ring {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.4);
+  animation: agentPulseAnim 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  pointer-events: none;
+}
+
+@keyframes agentPulseAnim {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.agent-avatar-core {
+  position: relative;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+
+/* 3. Numbered Lead Destination Pins */
+.lead-route-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lead-route-pin:hover {
+  transform: scale(1.15) translateY(-4px);
+  z-index: 9999 !important;
+}
+
+.lead-pin-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 2px solid #ffffff;
+}
+
+.lead-pin-badge.pending {
+  background: linear-gradient(135deg, #d14493 0%, #6d28d9 100%);
+}
+
+.lead-pin-badge.completed {
+  background: linear-gradient(135deg, #0b8f6a 0%, #047857 100%);
+}
+
+.lead-pin-number {
+  transform: rotate(45deg);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.lead-pin-dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  margin-top: 2px;
+  filter: blur(1px);
+}
+
+/* Custom HTML Leaflet Popup */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Fund Lelo Brand Utility Classes */
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #d14493 0%, #7c3aed 50%, #472385 100%);
+}
+
+.bg-brand-gradient-hover:hover {
+  background: linear-gradient(135deg, #e11d48 0%, #9333ea 50%, #581c87 100%);
+}
+
+.text-brand-gradient {
+  background: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-brand {
+  box-shadow: 0 4px 20px -2px rgba(209, 68, 147, 0.3), 0 2px 10px -2px rgba(109, 40, 217, 0.3);
+}
+
+.glow-brand-sm {
+  box-shadow: 0 2px 10px -1px rgba(209, 68, 147, 0.25);
+}

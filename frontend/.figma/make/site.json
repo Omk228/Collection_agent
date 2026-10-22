@@ -1,0 +1,10 @@
+{
+  "description": "Streamline loan collection processes with an intuitive agent app that enhances task management and improves communication efficiency.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
