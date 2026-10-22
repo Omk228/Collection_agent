@@ -154,44 +154,44 @@ interface RouteWrapperProps {
 
 function CustomerDetailRouteWrapper({ onNavigate, onRecordPayment, selectedCustomer, setSelectedCustomer }: RouteWrapperProps) {
   const { id } = useParams<{ id: string }>();
-  const [customer, setCustomer] = useState<Customer | null>(selectedCustomer || null);
-  const [loading, setLoading] = useState(!selectedCustomer);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [customer, setCustomer] = useState<Customer | null>(() => {
     if (selectedCustomer && (!id || String(selectedCustomer.id) === String(id) || selectedCustomer.loanId === id)) {
-      setCustomer(selectedCustomer);
-      setLoading(false);
-      return;
+      return selectedCustomer;
     }
-
     const saved = localStorage.getItem('selectedCustomer');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (!id || String(parsed.id) === String(id) || parsed.loanId === id) {
-          setCustomer(parsed);
-          setSelectedCustomer?.(parsed);
-          setLoading(false);
-          return;
+          return parsed;
         }
       } catch (e) {}
     }
+    return null;
+  });
+  const [loading, setLoading] = useState(!customer && !!id);
+  const [error, setError] = useState<string | null>(null);
 
-    if (id) {
-      setLoading(true);
-      api.customers.getCustomerById(id)
+  useEffect(() => {
+    const targetId = id || selectedCustomer?.id || customer?.id;
+    if (targetId) {
+      // Always fetch authoritative dynamic details from backend
+      api.customers.getCustomerById(targetId)
         .then(res => {
           if (res.customer) {
             setCustomer(res.customer);
             setSelectedCustomer?.(res.customer);
-            localStorage.setItem('selectedCustomer', JSON.stringify(res.customer));
-          } else {
+            try {
+              localStorage.setItem('selectedCustomer', JSON.stringify(res.customer));
+            } catch (_) {}
+          } else if (!customer) {
             setError('Borrower case not found');
           }
         })
         .catch(err => {
-          setError(err.message || 'Failed to load case details');
+          if (!customer) {
+            setError(err.message || 'Failed to load case details');
+          }
         })
         .finally(() => setLoading(false));
     } else {
@@ -660,7 +660,7 @@ function AppRoutes() {
                 } 
               />
               <Route path="/customer" element={<Navigate to="/customers" replace />} />
-              <Route path="/customer/:id" element={<CustomerDetailRouteWrapper onNavigate={handleNavigate} onRecordPayment={handleRecordPayment} selectedCustomer={selectedCustomer} />} />
+              <Route path="/customer/:id" element={<CustomerDetailRouteWrapper onNavigate={handleNavigate} onRecordPayment={handleRecordPayment} selectedCustomer={selectedCustomer} setSelectedCustomer={setSelectedCustomer} />} />
 
               {/* Payment Routes */}
               <Route 

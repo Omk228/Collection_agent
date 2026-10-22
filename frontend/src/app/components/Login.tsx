@@ -72,15 +72,6 @@ export function Login({ onLogin }: LoginProps) {
 
     if (!navigator.geolocation) {
       setGpsError('Geolocation is not supported by your browser');
-      const fallback: DetectedLocation = {
-        latitude: 28.6139,
-        longitude: 77.2090,
-        accuracy: 25,
-        address: 'Delhi NCR (Default Region)',
-        source: 'fallback'
-      };
-      setDetectedLocation(fallback);
-      locationRef.current = fallback;
       setIsDetectingGps(false);
       return;
     }
@@ -117,31 +108,25 @@ export function Login({ onLogin }: LoginProps) {
         console.warn('Geolocation lookup notice:', err.message);
         setGpsError(err.message);
         
-        // Check if cached position exists
-        let fallbackLoc: DetectedLocation = {
-          latitude: 28.6139,
-          longitude: 77.2090,
-          accuracy: 20,
-          address: 'Delhi NCR (Default Region)',
-          source: 'fallback'
-        };
-
+        // Use cached real position if previously acquired
         try {
           const cached = localStorage.getItem('agent_last_gps');
           if (cached) {
             const parsed = JSON.parse(cached);
-            fallbackLoc = {
-              latitude: parsed.latitude || 28.6139,
-              longitude: parsed.longitude || 77.2090,
-              accuracy: parsed.accuracy || 20,
-              address: parsed.address || 'Delhi NCR (Last Known Position)',
-              source: 'cached'
-            };
+            if (parsed.latitude && parsed.longitude) {
+              const cachedLoc: DetectedLocation = {
+                latitude: parsed.latitude,
+                longitude: parsed.longitude,
+                accuracy: parsed.accuracy || 20,
+                address: parsed.address || `GPS (${parsed.latitude.toFixed(4)}, ${parsed.longitude.toFixed(4)})`,
+                source: 'cached'
+              };
+              setDetectedLocation(cachedLoc);
+              locationRef.current = cachedLoc;
+            }
           }
         } catch (_) {}
 
-        setDetectedLocation(fallbackLoc);
-        locationRef.current = fallbackLoc;
         setIsDetectingGps(false);
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
@@ -168,39 +153,35 @@ export function Login({ onLogin }: LoginProps) {
     setIsLoading(true);
 
     try {
-      // Use detected location or fallback
-      const loc = locationRef.current || detectedLocation || {
-        latitude: 28.6139,
-        longitude: 77.2090,
-        accuracy: 10,
-        address: 'Delhi NCR (Field Location)',
-        source: 'fallback'
-      };
+      // Use real detected or cached location
+      const loc = locationRef.current || detectedLocation;
 
       const res = await api.auth.login(trimmedEmail, password, 'password', {
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        accuracy: loc.accuracy,
-        address: loc.address
+        latitude: loc ? loc.latitude : undefined,
+        longitude: loc ? loc.longitude : undefined,
+        accuracy: loc ? loc.accuracy : undefined,
+        address: loc ? loc.address : undefined
       });
 
       // Save to client location history cache with loginSession: true
-      try {
-        const historyLog = {
-          agentName: res.agent?.name || 'Collection Agent',
-          agentCode: res.agent?.agentCode || 'AG001',
-          timestamp: Date.now(),
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          address: res.loginLocation?.address || loc.address,
-          loginSession: true
-        };
-        const existingLogs = JSON.parse(localStorage.getItem('agentLocationLogs') || '[]');
-        localStorage.setItem('agentLocationLogs', JSON.stringify([historyLog, ...existingLogs.slice(0, 99)]));
-      } catch (_) {}
+      if (loc) {
+        try {
+          const historyLog = {
+            agentName: res.agent?.name || 'Collection Agent',
+            agentCode: res.agent?.agentCode || '',
+            timestamp: Date.now(),
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            address: res.loginLocation?.address || loc.address,
+            loginSession: true
+          };
+          const existingLogs = JSON.parse(localStorage.getItem('agentLocationLogs') || '[]');
+          localStorage.setItem('agentLocationLogs', JSON.stringify([historyLog, ...existingLogs.slice(0, 99)]));
+        } catch (_) {}
+      }
 
       toast.success(res.message || 'Login successful!');
-      if (loc.address) {
+      if (loc?.address) {
         toast.info(`📍 Live location recorded: ${loc.address}`);
       }
 

@@ -62,45 +62,8 @@ export function NotificationSystem({ onNavigate }: NotificationSystemProps) {
     frequency: 'once'
   });
 
-  // Mock data for notification rules
-  const [notificationRules, setNotificationRules] = useState<NotificationRule[]>([
-    {
-      id: '1',
-      name: 'EMI Due Tomorrow',
-      type: 'due_date',
-      triggerDays: 1,
-      enabled: true,
-      channels: ['sms', 'whatsapp'],
-      template: 'Dear {customerName}, your EMI of ₹{emiAmount} is due tomorrow ({dueDate}). Please ensure timely payment to avoid late fees.',
-      priority: 'high',
-      frequency: 'once'
-    },
-    {
-      id: '2',
-      name: 'Overdue Payment Alert',
-      type: 'overdue',
-      triggerDays: 3,
-      enabled: true,
-      channels: ['call', 'sms'],
-      template: 'Dear {customerName}, your EMI payment of ₹{emiAmount} is {daysPastDue} days overdue. Please contact us immediately to avoid penalty charges.',
-      priority: 'high',
-      frequency: 'daily',
-      conditions: {
-        daysPastDue: 3
-      }
-    },
-    {
-      id: '3',
-      name: 'Late Fee Notice',
-      type: 'late_fee',
-      triggerDays: 7,
-      enabled: true,
-      channels: ['sms', 'email'],
-      template: 'Dear {customerName}, a late fee of ₹{lateFee} has been applied to your account. Total outstanding: ₹{totalDue}. Please pay immediately.',
-      priority: 'high',
-      frequency: 'once'
-    }
-  ]);
+  // Dynamic notification rules
+  const [notificationRules, setNotificationRules] = useState<NotificationRule[]>([]);
 
   // Load live notifications and recent activity from backend
   const [pendingNotifications, setPendingNotifications] = useState<PendingNotification[]>([]);

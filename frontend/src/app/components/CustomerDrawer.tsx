@@ -226,7 +226,11 @@ export function CustomerDrawer({
   const loadCustomerDocuments = async (userId: number | string) => {
     setIsLoadingDocs(true);
     try {
-      const res = await api.documents.getCustomerDocuments(userId);
+      const docLookupId = customer?.loanId || userId;
+      const res = await api.documents.getCustomerDocuments(docLookupId, {
+        loanId: customer?.loanId,
+        phone: customer?.phone
+      });
       if (res?.data) {
         setCustomerDocs(res.data);
       } else {
@@ -993,20 +997,40 @@ export function CustomerDrawer({
                 </div>
               </Card>
 
-              {customer.coApplicantName && (
-                <Card className="p-3 space-y-1.5">
-                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Co-Applicant</h4>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Name:</span>
-                    <span className="font-medium">{customer.coApplicantName}</span>
-                  </div>
-                  {customer.coApplicantPhone && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Phone:</span>
-                      <a href={`tel:${customer.coApplicantPhone}`} className="text-primary font-medium">
-                        {customer.coApplicantPhone}
-                      </a>
-                    </div>
+              {((customer as any).references?.length > 0 || customer.coApplicantName) && (
+                <Card className="p-3 space-y-2">
+                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                    Customer References
+                  </h4>
+                  {(customer as any).references?.length > 0 ? (
+                    (customer as any).references.map((ref: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between py-1 border-b last:border-b-0 text-xs">
+                        <div>
+                          <span className="font-medium">{ref.name}</span>
+                          {ref.relation && <span className="text-[10px] text-muted-foreground ml-1">({ref.relation})</span>}
+                        </div>
+                        {ref.phone && (
+                          <a href={`tel:${ref.phone}`} className="text-primary font-mono font-medium">
+                            {ref.phone}
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Name:</span>
+                        <span className="font-medium">{customer.coApplicantName}</span>
+                      </div>
+                      {customer.coApplicantPhone && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Phone:</span>
+                          <a href={`tel:${customer.coApplicantPhone}`} className="text-primary font-medium font-mono">
+                            {customer.coApplicantPhone}
+                          </a>
+                        </div>
+                      )}
+                    </>
                   )}
                 </Card>
               )}

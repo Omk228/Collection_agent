@@ -98,32 +98,27 @@ export function Attendance({ onNavigate }: AttendanceProps) {
           });
         },
         (error) => {
-          // Fallback location
-          setLocation({
-            lat: 28.6139,
-            lng: 77.2090,
-            address: 'Delhi, India'
-          });
+          console.warn('Geolocation error:', error.message);
+          setLocation(null);
         },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     } else {
-      setLocation({
-        lat: 28.6139,
-        lng: 77.2090,
-        address: 'Delhi, India'
-      });
+      setLocation(null);
     }
   }, []);
 
   const handleCheckIn = async () => {
-    const loc = location || { lat: 28.6139, lng: 77.2090, address: 'Delhi NCR' };
-
+    if (!location) {
+      toast.error('Live GPS location is required to punch in');
+      return;
+    }
+    
     try {
       await api.attendance.punchIn({
-        latitude: loc.lat,
-        longitude: loc.lng,
-        address: loc.address
+        latitude: location.lat,
+        longitude: location.lng,
+        address: location.address
       });
     } catch (e: any) {
       console.warn('Backend punchIn:', e.message);
@@ -133,7 +128,7 @@ export function Attendance({ onNavigate }: AttendanceProps) {
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       checkIn: currentTime.toTimeString().slice(0, 5),
-      location: loc,
+      location: location,
       visits: 0,
       status: 'active'
     };

@@ -438,8 +438,13 @@ class ApiService {
 
   // 13. Customer Documents & Zero-Trust KYC
   documents = {
-    getCustomerDocuments: (userId: string | number) => 
-      this.request(`/documents/customer/${userId}`),
+    getCustomerDocuments: (userId: string | number, params?: { loanId?: string; phone?: string }) => {
+      const queryParts: string[] = [];
+      if (params?.loanId) queryParts.push(`loanId=${encodeURIComponent(params.loanId)}`);
+      if (params?.phone) queryParts.push(`phone=${encodeURIComponent(params.phone)}`);
+      const qs = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+      return this.request(`/documents/customer/${userId}${qs}`);
+    },
     streamDocumentUrl: (filePath: string) => 
       resolveSecureDocUrl(`${API_BASE_URL}/documents/stream?path=${encodeURIComponent(filePath)}`),
   };

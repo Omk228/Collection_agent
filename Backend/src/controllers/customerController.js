@@ -5,7 +5,14 @@ const { logPanelActivity } = require('../services/panelLogService');
 
 // Auto-sync loan accounts assigned to this field collection agent by collection team/manager
 // Also runs round-robin auto-assignment for any unassigned SENT_TO_COLLECTION_AGENT cases
-async function syncAssignedCases(agentCode = 'AG001') {
+let lastSyncTimestamp = 0;
+async function syncAssignedCases(agentCode = 'AG001', force = false) {
+  const now = Date.now();
+  if (!force && now - lastSyncTimestamp < 30000) {
+    return; // Ran recently, prevent parallel database contention and locks
+  }
+  lastSyncTimestamp = now;
+
   try {
     // 1. Run Round-Robin Auto-Assignment across active collection agents
     await autoAssignSentCases();
@@ -26,12 +33,11 @@ async function syncAssignedCases(agentCode = 'AG001') {
       }
     }
 
-    // 3. Purge any cases from old leads table sync (LN-FLD-%) or closed/settled loans
+    // 3. Purge only invalid mock loans; do NOT purge paid/settled loans so agents retain collection records
     await query(`
       DELETE FROM collection_customers 
       WHERE loan_id LIKE 'LN-FLD-%'
          OR loan_id = 'LN-LEAD-302457'
-         OR loan_id IN (SELECT id FROM loan_accounts WHERE status IN ('Closed', 'Settled', 'CLOSED', 'SETTLED'))
     `);
 
     // 4. Remove loans that were re-assigned to a different agent in loan_accounts
@@ -58,86 +64,109 @@ async function getCustomers(req, res, next) {
   try {
     const { search, status, bucket, near_me, lat, lng } = req.query;
 
-    // Fetch cases assigned to this agent
-    let sql = 'SELECT * FROM collection_customers WHERE (assigned_agent_code = ? OR assigned_agent_code = "AG001" OR assigned_agent_code IS NULL)';
+    // Fetch cases assigned to this agent with live loan_accounts and loans data
+    let sql = `
+      SELECT 
+        cc.*,
+        la.disbursed_on as la_disbursed_on,
+        la.due_date as la_due_date,
+        la.tenure as la_tenure,
+        la.tenure_unit as la_tenure_unit,
+        la.total_repayable as la_total_repayable,
+        la.total_paid as la_total_paid,
+        la.outstanding as la_outstanding,
+        la.status as la_status,
+        (SELECT COALESCE(SUM(ap.amount), 0) FROM agent_payments ap WHERE (ap.customer_id = cc.id OR ap.loan_id = cc.loan_id) AND ap.status != 'failed') as total_collected,
+        l.disbursement_date as l_disbursement_date,
+        l.maturity_date as l_maturity_date,
+        l.interest_amount as l_interest_amount,
+        l.total_payable as l_total_payable
+      FROM collection_customers cc
+      LEFT JOIN loan_accounts la ON (la.id = cc.loan_id OR la.application_id = cc.loan_id)
+      LEFT JOIN loans l ON (l.loan_account_number = cc.loan_id)
+      WHERE (cc.assigned_agent_code = ? OR cc.assigned_agent_code = "AG001" OR cc.assigned_agent_code IS NULL)
+    `;
     const params = [agentCodeParam];
 
     if (status && status !== 'all') {
-      sql += ' AND status = ?';
-      params.push(status);
+      if (status === 'SENT_TO_COLLECTION_AGENT' || status === 'field') {
+        sql += ' AND (cc.status = "SENT_TO_COLLECTION_AGENT" OR cc.status = "paid" OR cc.status = "active" OR cc.status = "assigned")';
+      } else if (status === 'current') {
+        sql += ' AND (cc.status = "current" OR cc.status = "active" OR cc.status = "paid" OR cc.days_past_due <= 30)';
+      } else if (status === 'overdue') {
+        sql += ' AND (cc.status = "overdue" OR cc.status = "delinquent" OR cc.days_past_due > 0)';
+      } else {
+        sql += ' AND cc.status = ?';
+        params.push(status);
+      }
     }
 
     // SMA Bucket filtering: SMA-0 (1-30), SMA-1 (31-60), SMA-2 (61-90), NPA (>90)
     if (bucket) {
       const b = bucket.toUpperCase();
       if (b === 'SMA-0') {
-        sql += ' AND days_past_due BETWEEN 1 AND 30';
+        sql += ' AND cc.days_past_due BETWEEN 1 AND 30';
       } else if (b === 'SMA-1') {
-        sql += ' AND days_past_due BETWEEN 31 AND 60';
+        sql += ' AND cc.days_past_due BETWEEN 31 AND 60';
       } else if (b === 'SMA-2') {
-        sql += ' AND days_past_due BETWEEN 61 AND 90';
+        sql += ' AND cc.days_past_due BETWEEN 61 AND 90';
       } else if (b === 'NPA' || b === 'SMA-3') {
-        sql += ' AND days_past_due > 90';
+        sql += ' AND cc.days_past_due > 90';
       }
     }
 
     if (search) {
-      sql += ' AND (name LIKE ? OR phone LIKE ? OR loan_id LIKE ? OR address LIKE ?)';
+      sql += ' AND (cc.name LIKE ? OR cc.phone LIKE ? OR cc.loan_id LIKE ? OR cc.address LIKE ?)';
       const s = `%${search}%`;
       params.push(s, s, s, s);
     }
 
-    sql += ' ORDER BY amount_due DESC';
+    sql += ' ORDER BY cc.amount_due DESC';
 
     let rows = [];
     try {
-      const queryPromise = query(sql, params);
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 3000));
-      rows = await Promise.race([queryPromise, timeoutPromise]);
+      rows = await query(sql, params);
     } catch (e) {
-      console.warn('[DB Error] getCustomers:', e.message);
-      rows = [];
+      console.warn('[DB Error] getCustomers complex query failed, trying fallback query:', e.message);
+      try {
+        rows = await query('SELECT * FROM collection_customers ORDER BY id DESC');
+      } catch (err2) {
+        console.error('[DB Error] Fallback query failed:', err2.message);
+        rows = [];
+      }
+    }
+
+    if (!rows || rows.length === 0) {
+      try {
+        const fallbackRows = await query('SELECT * FROM collection_customers ORDER BY id DESC LIMIT 50');
+        if (fallbackRows && fallbackRows.length > 0) {
+          rows = fallbackRows;
+        }
+      } catch (_) {}
     }
 
     if (!rows || rows.length === 0) {
       rows = [];
     }
 
-    const agentLat = lat ? parseFloat(lat) : 28.6738;
-    const agentLng = lng ? parseFloat(lng) : 77.1005;
+    const agentLat = lat ? parseFloat(lat) : null;
+    const agentLng = lng ? parseFloat(lng) : null;
 
     let formattedCustomers = rows.map((c, idx) => {
-      let cLat = parseFloat(c.latitude);
-      let cLng = parseFloat(c.longitude);
-      let hasLiveCoords = Boolean(cLat && cLng && !isNaN(cLat) && !isNaN(cLng) && cLat !== 0 && cLng !== 0);
+      let cLat = c.latitude ? parseFloat(c.latitude) : null;
+      let cLng = c.longitude ? parseFloat(c.longitude) : null;
+      let hasLiveCoords = Boolean(cLat && cLng && !isNaN(cLat) && !isNaN(cLng));
 
-      // If coordinates are missing, distribute across distinct stops in the agent's NCR operational territory
-      if (!hasLiveCoords) {
-        const clusters = [
-          { lat: 28.6139, lng: 77.2090 }, // Connaught Place
-          { lat: 28.5355, lng: 77.3910 }, // Noida Sector 62
-          { lat: 28.4595, lng: 77.0266 }, // Gurgaon Cyber Hub
-          { lat: 28.5245, lng: 77.2066 }, // Saket South Delhi
-          { lat: 28.5921, lng: 77.0460 }, // Dwarka
-          { lat: 28.7041, lng: 77.1025 }, // Rohini North
-          { lat: 28.6507, lng: 77.1906 }, // Karol Bagh
-          { lat: 28.6692, lng: 77.4538 }  // Ghaziabad
-        ];
-        const chosen = clusters[idx % clusters.length];
-        const jitter = (((c.id || idx) * 31) % 40 - 20) * 0.0008;
-        cLat = chosen.lat + jitter;
-        cLng = chosen.lng + jitter;
-        hasLiveCoords = true;
+      let distanceKm = 0;
+      if (hasLiveCoords && agentLat !== null && agentLng !== null) {
+        const dLat = (cLat - agentLat) * (Math.PI / 180);
+        const dLng = (cLng - agentLng) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(agentLat * (Math.PI / 180)) * Math.cos(cLat * (Math.PI / 180)) *
+                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const cDist = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        distanceKm = Math.round(6371 * cDist * 10) / 10;
       }
-      
-      // Approximate Haversine distance in km
-      const dLat = (cLat - agentLat) * (Math.PI / 180);
-      const dLng = (cLng - agentLng) * (Math.PI / 180);
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(agentLat * (Math.PI / 180)) * Math.cos(cLat * (Math.PI / 180)) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const cDist = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distanceKm = Math.round(6371 * cDist * 10) / 10;
 
       // Calculate bucket
       const dpd = c.days_past_due || 0;
@@ -147,16 +176,37 @@ async function getCustomers(req, res, next) {
       else if (dpd > 30) calculatedBucket = 'SMA-1';
       else if (dpd > 0) calculatedBucket = 'SMA-0';
 
+      const tenureValue = parseInt(c.la_tenure || c.loan_tenure, 10) || 30;
+      const tenureUnit = c.la_tenure_unit || (tenureValue > 12 ? 'days' : 'months');
+      const disbursedOn = c.la_disbursed_on || (c.l_disbursement_date ? new Date(c.l_disbursement_date).toISOString().split('T')[0] : (c.created_at ? new Date(c.created_at).toISOString().split('T')[0] : 'N/A'));
+      const dueDateFormatted = c.la_due_date || (c.l_maturity_date ? new Date(c.l_maturity_date).toISOString().split('T')[0] : (c.due_date ? new Date(c.due_date).toISOString().split('T')[0] : 'N/A'));
+      const totalRepayable = parseFloat(c.la_total_repayable) || parseFloat(c.l_total_payable) || parseFloat(c.loan_amount) || parseFloat(c.amount_due) || 0;
+      const totalPaid = Math.max(parseFloat(c.la_total_paid) || 0, parseFloat(c.total_collected) || 0);
+      const totalInterest = parseFloat(c.l_interest_amount) || Math.max(0, totalRepayable - (parseFloat(c.loan_amount) || 0));
+
+      const isPaid = (c.status === 'paid') ||
+                     (c.la_status && ['Settled', 'Closed', 'SETTLED', 'CLOSED'].includes(c.la_status)) ||
+                     (parseFloat(c.amount_due) <= 0) ||
+                     (c.la_outstanding !== null && c.la_outstanding !== undefined && parseFloat(c.la_outstanding) <= 0 && totalPaid > 0) ||
+                     (totalRepayable > 0 && totalPaid >= totalRepayable);
+
+      const resolvedAmountDue = isPaid ? 0 : Math.max(0, parseFloat(c.amount_due) || 0);
+      const resolvedStatus = isPaid ? 'paid' : c.status;
+
       return {
         id: c.id,
         name: c.name,
         phone: c.phone,
         address: c.address,
         loanAmount: parseFloat(c.loan_amount) || 0,
-        amountDue: parseFloat(c.amount_due) || 0,
-        loan: parseFloat(c.amount_due) || parseFloat(c.loan_amount) || 0,
-        lastPayment: c.last_payment ? new Date(c.last_payment).toISOString().split('T')[0] : 'N/A',
-        status: c.status,
+        amountDue: resolvedAmountDue,
+        totalRepayable,
+        totalPaid,
+        totalInterest,
+        isPaid,
+        loan: resolvedAmountDue > 0 ? resolvedAmountDue : (parseFloat(c.loan_amount) || 0),
+        lastPayment: c.last_payment ? new Date(c.last_payment).toISOString().split('T')[0] : (totalPaid > 0 ? new Date().toISOString().split('T')[0] : 'N/A'),
+        status: resolvedStatus,
         daysPastDue: dpd,
         bucket: calculatedBucket,
         distanceKm,
@@ -164,12 +214,16 @@ async function getCustomers(req, res, next) {
         photoId: c.photo_id || null,
         loanId: c.loan_id,
         emiAmount: parseFloat(c.emi_amount) || 0,
-        dueDate: c.due_date ? new Date(c.due_date).toISOString().split('T')[0] : 'N/A',
+        dueDate: dueDateFormatted,
+        loanStartDate: disbursedOn,
+        loanEndDate: dueDateFormatted,
+        disbursedOn: disbursedOn,
         overdueDays: c.overdue_days || dpd,
         principalBalance: parseFloat(c.principal_balance) || 0,
         interestRate: parseFloat(c.interest_rate) || 16.0,
-        loanTenure: c.loan_tenure || 24,
-        remainingTenure: c.remaining_tenure || 18,
+        loanTenure: tenureValue,
+        remainingTenure: c.remaining_tenure ? parseInt(c.remaining_tenure, 10) : tenureValue,
+        tenureUnit: tenureUnit,
         coApplicantName: c.co_applicant_name || '',
         coApplicantPhone: c.co_applicant_phone || '',
         occupation: c.occupation || 'Salaried',
@@ -219,51 +273,167 @@ async function getCustomerById(req, res, next) {
       ORDER BY created_at DESC
     `, [c.id, c.loan_id]);
 
-    // Check central loan_accounts table for additional bank info
+    // Check central loan_accounts and loans table for additional terms, tenure & bank info
     const loanRows = await query('SELECT * FROM loan_accounts WHERE id = ? OR application_id = ?', [c.loan_id, c.loan_id]);
     const loanAcc = loanRows[0] || {};
+
+    const loansRows = await query('SELECT * FROM loans WHERE loan_account_number = ? OR lead_id = ?', [c.loan_id, c.id]);
+    const loanDb = loansRows[0] || {};
+
+    // Check users and leads table for employment/income details if missing
+    let userProfile = null;
+    let leadProfile = null;
+    try {
+      const cleanPhone = (c.phone || '').replace(/[\s\-\+]/g, '').replace(/^91/, '').replace(/^0/, '');
+      const uRows = await query(`
+        SELECT * FROM users 
+        WHERE phone LIKE ? 
+           OR email = ? 
+           OR REPLACE(REPLACE(REPLACE(phone, '+91', ''), ' ', ''), '-', '') LIKE ?
+        LIMIT 1
+      `, [`%${cleanPhone}%`, c.email || '', `%${cleanPhone}%`]);
+      if (uRows.length > 0) userProfile = uRows[0];
+
+      const lRows = await query(`
+        SELECT * FROM leads 
+        WHERE mobile LIKE ? 
+           OR email = ? 
+           OR lead_number = ? 
+           OR CONCAT('LN-', lead_number) = ? 
+           OR loan_id = ?
+        LIMIT 1
+      `, [`%${cleanPhone}%`, c.email || '', c.loan_id ? c.loan_id.replace(/^LN-/, '') : '', c.loan_id, c.loan_id]);
+      if (lRows.length > 0) leadProfile = lRows[0];
+    } catch (_) {}
+
+    const resolvedMonthlyIncome = parseFloat(c.monthly_income) || parseFloat(userProfile?.monthly_income) || parseFloat(leadProfile?.monthly_income) || 0;
+    const resolvedOccupation = c.occupation || userProfile?.designation || userProfile?.employment_type || (leadProfile ? 'Salaried' : '');
+    const resolvedAddress = c.address && c.address !== 'Delhi NCR' ? c.address : (userProfile?.current_address || c.address);
+
+    // Extract dynamic references from users table and lead_references table
+    const references = [];
+    if (userProfile) {
+      for (let i = 1; i <= 5; i++) {
+        const refName = userProfile[`reference${i}_name`];
+        const refPhone = userProfile[`reference${i}_phone`];
+        const refRelation = userProfile[`reference${i}_relation`] || 'Reference';
+        if (refName && refPhone) {
+          references.push({
+            name: refName,
+            phone: refPhone,
+            relation: refRelation,
+            email: userProfile[`reference${i}_email`] || '',
+            address: userProfile[`reference${i}_address`] || ''
+          });
+        }
+      }
+    }
+
+    // Also check lead_references table
+    try {
+      const lrRows = await query(
+        'SELECT name, relationship as relation, mobile as phone, email, address FROM lead_references WHERE lead_id = ? OR user_id = ?',
+        [leadProfile?.id || c.id, userProfile?.id || c.id]
+      );
+      for (const lr of lrRows) {
+        if (lr.name && lr.phone && !references.some(r => r.phone === lr.phone)) {
+          references.push({
+            name: lr.name,
+            phone: lr.phone,
+            relation: lr.relation || 'Reference',
+            email: lr.email || '',
+            address: lr.address || ''
+          });
+        }
+      }
+    } catch (_) {}
+
+    const primaryRef = references[0] || null;
+    const resolvedCoApplicantName = c.co_applicant_name || primaryRef?.name || '';
+    const resolvedCoApplicantPhone = c.co_applicant_phone || primaryRef?.phone || '';
+    const resolvedCoApplicantRelation = primaryRef?.relation || 'Reference';
+
+    const tenureValue = parseInt(loanAcc.tenure || loanDb.tenure_days || c.loan_tenure, 10) || 30;
+    const tenureUnit = loanAcc.tenure_unit || (tenureValue > 12 ? 'days' : 'months');
+    const remainingTenure = loanAcc.days_remaining !== undefined && loanAcc.days_remaining !== null 
+      ? parseInt(loanAcc.days_remaining, 10) 
+      : (c.remaining_tenure ? parseInt(c.remaining_tenure, 10) : tenureValue);
+
+    const disbursedOn = loanAcc.disbursed_on || (loanDb.disbursement_date ? new Date(loanDb.disbursement_date).toISOString().split('T')[0] : (c.created_at ? new Date(c.created_at).toISOString().split('T')[0] : 'N/A'));
+    const dueDateFormatted = loanAcc.due_date || (loanDb.maturity_date ? new Date(loanDb.maturity_date).toISOString().split('T')[0] : (c.due_date ? new Date(c.due_date).toISOString().split('T')[0] : 'N/A'));
+
+    const originalPrincipal = parseFloat(loanAcc.principal) || parseFloat(loanDb.principal_amount) || parseFloat(c.loan_amount) || 0;
+    const totalRepayable = parseFloat(loanAcc.total_repayable) || parseFloat(loanDb.total_payable) || parseFloat(c.amount_due) || originalPrincipal;
+    const agentPayments = await query('SELECT COALESCE(SUM(amount), 0) as total FROM agent_payments WHERE (customer_id = ? OR loan_id = ?) AND status != "failed"', [c.id, c.loan_id]).catch(() => [{ total: 0 }]);
+    const totalPaid = Math.max(parseFloat(loanAcc.total_paid) || 0, parseFloat(agentPayments[0]?.total) || 0);
+    const totalInterest = parseFloat(loanDb.interest_amount) || Math.max(0, totalRepayable - originalPrincipal);
+
+    const isPaid = (c.status === 'paid') ||
+                   (loanAcc.status && ['Settled', 'Closed', 'SETTLED', 'CLOSED'].includes(loanAcc.status)) ||
+                   (parseFloat(c.amount_due) <= 0) ||
+                   (loanAcc.outstanding !== null && loanAcc.outstanding !== undefined && parseFloat(loanAcc.outstanding) <= 0 && totalPaid > 0) ||
+                   (totalRepayable > 0 && totalPaid >= totalRepayable);
+
+    const resolvedAmountDue = isPaid ? 0 : (parseFloat(c.amount_due) || parseFloat(loanAcc.outstanding) || originalPrincipal);
+    const resolvedStatus = isPaid ? 'paid' : c.status;
 
     const customer = {
       id: c.id,
       name: c.name,
       phone: c.phone,
-      address: c.address,
-      loanAmount: parseFloat(c.loan_amount) || 0,
-      amountDue: parseFloat(c.amount_due) || 0,
-      lastPayment: c.last_payment ? new Date(c.last_payment).toISOString().split('T')[0] : 'N/A',
-      status: c.status,
+      address: resolvedAddress,
+      loanAmount: originalPrincipal,
+      amountDue: resolvedAmountDue,
+      totalRepayable: totalRepayable,
+      totalPaid: totalPaid,
+      totalInterest: totalInterest,
+      disbursedOn: disbursedOn,
+      loanStartDate: disbursedOn,
+      loanEndDate: dueDateFormatted,
+      lastPayment: c.last_payment ? new Date(c.last_payment).toISOString().split('T')[0] : (totalPaid > 0 ? new Date().toISOString().split('T')[0] : 'N/A'),
+      status: resolvedStatus,
+      isPaid,
       daysPastDue: c.days_past_due || 0,
       email: c.email || '',
       photoId: c.photo_id || null,
       loanId: c.loan_id,
       emiAmount: parseFloat(c.emi_amount) || 0,
-      dueDate: c.due_date ? new Date(c.due_date).toISOString().split('T')[0] : 'N/A',
+      dueDate: dueDateFormatted,
       overdueDays: c.overdue_days || 0,
-      principalBalance: parseFloat(c.principal_balance) || 0,
-      interestRate: parseFloat(c.interest_rate) || 0,
-      loanTenure: c.loan_tenure || 0,
-      remainingTenure: c.remaining_tenure || 0,
-      coApplicantName: c.co_applicant_name || '',
-      coApplicantPhone: c.co_applicant_phone || '',
-      occupation: c.occupation || '',
-      monthlyIncome: parseFloat(c.monthly_income) || 0,
-      latitude: parseFloat(c.latitude) || 28.6139,
-      longitude: parseFloat(c.longitude) || 77.2090,
+      principalBalance: parseFloat(c.principal_balance) || originalPrincipal,
+      interestRate: parseFloat(c.interest_rate) || parseFloat(loanAcc.interest_rate) || 0,
+      loanTenure: tenureValue,
+      remainingTenure: remainingTenure,
+      tenureUnit: tenureUnit,
+      coApplicantName: resolvedCoApplicantName,
+      coApplicantPhone: resolvedCoApplicantPhone,
+      coApplicantRelation: resolvedCoApplicantRelation,
+      references: references,
+      occupation: resolvedOccupation,
+      monthlyIncome: resolvedMonthlyIncome,
+      latitude: c.latitude ? parseFloat(c.latitude) : (userProfile?.latitude ? parseFloat(userProfile.latitude) : null),
+      longitude: c.longitude ? parseFloat(c.longitude) : (userProfile?.longitude ? parseFloat(userProfile.longitude) : null),
       bankDetails: {
-        bankName: loanAcc.bank_name || 'N/A',
-        accountNumber: loanAcc.bank_account_no ? `••••${loanAcc.bank_account_no.slice(-4)}` : 'N/A',
-        ifsc: loanAcc.bank_ifsc || 'N/A'
+        bankName: loanAcc.bank_name || userProfile?.bank_name || 'N/A',
+        accountNumber: loanAcc.bank_account_no ? `••••${loanAcc.bank_account_no.slice(-4)}` : (userProfile?.account_number ? `••••${userProfile.account_number.slice(-4)}` : 'N/A'),
+        ifsc: loanAcc.bank_ifsc || userProfile?.ifsc_code || 'N/A'
       },
-      paymentHistory: payments.map(p => ({
-        id: p.id,
-        receiptNumber: p.receipt_number,
-        amount: parseFloat(p.amount),
-        mode: p.payment_mode,
-        date: p.payment_date,
-        status: p.status,
-        reference: p.transaction_reference,
-        notes: p.notes
-      })),
+      paymentHistory: payments.map(p => {
+        const amt = parseFloat(p.amount) || 0;
+        return {
+          id: p.id,
+          receiptNumber: p.receipt_number,
+          amount: amt,
+          principalAmount: Math.floor(amt * 0.7),
+          interestAmount: Math.floor(amt * 0.3),
+          penalty: 0,
+          mode: p.payment_mode,
+          date: p.payment_date,
+          status: p.status,
+          reference: p.transaction_reference,
+          notes: p.notes
+        };
+      }),
       visitHistory: visits.map(v => ({
         id: v.id,
         visitCode: v.visit_code,
@@ -397,7 +567,7 @@ async function assignCaseToAgent(req, res, next) {
       await query(`
         INSERT INTO collection_customers
         (name, phone, address, loan_id, loan_amount, amount_due, emi_amount, due_date, status, days_past_due, principal_balance, interest_rate, loan_tenure, remaining_tenure, assigned_agent_code, latitude, longitude)
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), 'overdue', 15, ?, 16.0, 12, 6, ?, 28.6139, 77.2090)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), 'overdue', 0, ?, 16.0, 30, 30, ?, NULL, NULL)
       `, [
         borrowerName || 'Borrower',
         phone || '9999999999',

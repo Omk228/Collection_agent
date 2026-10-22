@@ -3,7 +3,7 @@ import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Search, Phone, MapPin, DollarSign, Calendar, Filter, Users, Loader2, RefreshCw, CreditCard, Map, List, Navigation } from 'lucide-react';
+import { Search, Phone, MapPin, DollarSign, Calendar, Filter, Users, Loader2, RefreshCw, CreditCard, Map, List, Navigation, CheckCircle2, Clock } from 'lucide-react';
 import { api } from '../services/api';
 import { CustomerDrawer } from './CustomerDrawer';
 import { LiveRouteMap, RouteLead } from './LiveRouteMap';
@@ -43,8 +43,15 @@ interface CustomerListProps {
 export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const saved = sessionStorage.getItem('fundlelo_cached_customers');
+      return saved ? JSON.parse(saved) : [];
+    } catch (_) {
+      return [];
+    }
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Customer Drawer States
@@ -62,13 +69,23 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
   }, [filterStatus]);
 
   const loadCustomers = async () => {
-    setIsLoading(true);
     try {
       const res = await api.customers.getCustomers({ status: filterStatus });
-      setCustomers(res.customers || []);
+      if (res && Array.isArray(res.customers)) {
+        if (res.customers.length > 0) {
+          setCustomers(res.customers);
+          try {
+            sessionStorage.setItem('fundlelo_cached_customers', JSON.stringify(res.customers));
+          } catch (_) {}
+        } else if (filterStatus !== 'all') {
+          setCustomers([]);
+        } else {
+          // If all cases is selected and backend temporarily returned 0, keep previous customers
+          setCustomers(prev => (prev.length > 0 ? prev : []));
+        }
+      }
     } catch (err) {
-      console.error('Failed to load customers from backend:', err);
-      setCustomers([]);
+      console.warn('Notice loading customers from backend:', err);
     } finally {
       setIsLoading(false);
     }
@@ -99,18 +116,22 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
       case 'current': return 'Current';
       case 'overdue': return 'Overdue';
       case 'delinquent': return 'Defaulted';
-      case 'paid': return 'Paid / Closed';
+      case 'paid': return 'Paid';
       default: return status || 'Unknown';
     }
   };
 
   const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.phone.includes(searchTerm) ||
-                         customer.loanId.toLowerCase().includes(searchTerm.toLowerCase());
+    const q = (searchTerm || '').trim().toLowerCase();
+    const nameMatch = !q || (customer.name && customer.name.toLowerCase().includes(q));
+    const phoneMatch = !q || (customer.phone && String(customer.phone).includes(q));
+    const loanMatch = !q || (customer.loanId && String(customer.loanId).toLowerCase().includes(q));
+    const matchesSearch = Boolean(nameMatch || phoneMatch || loanMatch);
+
     const matchesFilter = filterStatus === 'all' || 
                           customer.status === filterStatus ||
-                          (filterStatus === 'field' && (customer.status === 'SENT_TO_COLLECTION_AGENT' || customer.status === 'overdue'));
+                          (filterStatus === 'SENT_TO_COLLECTION_AGENT' && (customer.status === 'SENT_TO_COLLECTION_AGENT' || customer.status === 'paid' || customer.status === 'active')) ||
+                          (filterStatus === 'field' && (customer.status === 'SENT_TO_COLLECTION_AGENT' || customer.status === 'overdue' || customer.status === 'paid'));
     return matchesSearch && matchesFilter;
   });
 
@@ -219,63 +240,86 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
         {filteredCustomers.map((customer) => (
           <Card 
             key={customer.id} 
-            className="cursor-pointer hover:shadow-md transition-shadow"
+            className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
             onClick={() => onSelectCustomer(customer)}
           >
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
+            <CardContent className="p-3.5 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3 mb-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h3 className="font-bold font-display text-card-foreground text-sm tracking-tight">{customer.name}</h3>
-                    <Badge variant={getStatusColor(customer.status) as any}>
+                    <h3 className="font-bold font-display text-card-foreground text-sm tracking-tight truncate max-w-[220px] sm:max-w-none">{customer.name}</h3>
+                    <Badge variant={getStatusColor(customer.status) as any} className="shrink-0">
                       {getStatusText(customer.status)}
                     </Badge>
                   </div>
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1 font-mono">
-                      <Phone className="w-3 h-3 text-muted-foreground" />
-                      {customer.phone}
+                      <Phone className="w-3 h-3 text-muted-foreground shrink-0" />
+                      <span>{customer.phone}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-muted-foreground" />
+                    <div className="flex items-center gap-1 min-w-0">
+                      <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
                       <span className="truncate">{customer.address}</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="font-bold shadow-xs text-xs bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all"
-                    onClick={(e) => handleOpenDrawer(customer, e)}
-                  >
-                    <DollarSign className="w-3.5 h-3.5 mr-1" />
-                    Collect & Pay
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs font-semibold"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectCustomer(customer);
-                    }}
-                  >
-                    Details
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="text-xs font-semibold"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      localStorage.setItem('selectedCustomerForVisit', JSON.stringify(customer));
-                      onNavigate('field-collections');
-                    }}
-                  >
-                    <Users className="w-3 h-3 mr-1" />
-                    Visit
-                  </Button>
+
+                <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {((customer as any).isPaid || customer.amountDue <= 0 || customer.status === 'paid' || customer.status === 'closed' || customer.status === 'Settled' || customer.status === 'SETTLED' || customer.status === 'CLOSED') ? (
+                      <Badge 
+                        variant="paid" 
+                        className="h-7 sm:h-8 px-2.5 sm:px-3 py-1 font-bold text-xs gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-xs flex items-center shrink-0"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        Paid
+                      </Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="h-7 sm:h-8 font-bold shadow-xs text-xs bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all"
+                        onClick={(e) => handleOpenDrawer(customer, e)}
+                      >
+                        <DollarSign className="w-3.5 h-3.5 mr-1" />
+                        Collect & Pay
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 sm:h-8 text-xs font-semibold px-2.5 sm:px-3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectCustomer(customer);
+                      }}
+                    >
+                      Details
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-7 sm:h-8 text-xs font-semibold px-2.5 sm:px-3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        localStorage.setItem('selectedCustomerForVisit', JSON.stringify(customer));
+                        onNavigate('field-collections');
+                      }}
+                    >
+                      <Users className="w-3 h-3 mr-1" />
+                      Visit
+                    </Button>
+                  </div>
+
+                  {((customer as any).isPaid || customer.amountDue <= 0 || customer.status === 'paid' || customer.status === 'closed' || customer.status === 'Settled' || customer.status === 'SETTLED' || customer.status === 'CLOSED') && (
+                    <Badge 
+                      variant="outline" 
+                      className="w-full sm:w-auto h-auto min-h-7 py-1 px-2.5 font-semibold text-[11px] sm:text-xs gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-xs flex items-center justify-start whitespace-normal text-left max-w-full"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <span className="leading-tight">Sent to Accounts for Verification</span>
+                    </Badge>
+                  )}
                 </div>
               </div>
               
@@ -334,8 +378,24 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
       <CustomerDrawer 
         customer={drawerCustomer}
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={() => {
+          setIsDrawerOpen(false);
+          loadCustomers();
+        }}
         onPaymentSuccess={() => {
+          if (drawerCustomer) {
+            setCustomers(prev => {
+              const updated = prev.map(c => 
+                (c.id === drawerCustomer.id || c.loanId === drawerCustomer.loanId)
+                  ? { ...c, isPaid: true, amountDue: 0, status: 'paid', lastPayment: new Date().toISOString().split('T')[0] }
+                  : c
+              );
+              try {
+                sessionStorage.setItem('fundlelo_cached_customers', JSON.stringify(updated));
+              } catch (_) {}
+              return updated;
+            });
+          }
           loadCustomers();
         }}
         onNavigate={onNavigate}

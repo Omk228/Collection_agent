@@ -91,15 +91,7 @@ export function VisitProof({ onNavigate, customerId = 1, customerName = 'Custome
           }
           
           console.warn('Geolocation error:', errorMessage, error);
-          
-          // Set fallback location
-          const fallbackLocation: LocationData = {
-            lat: 28.6139,
-            lng: 77.2090,
-            address: 'Delhi, India (Fallback)',
-            timestamp: Date.now()
-          };
-          setLocation(fallbackLocation);
+          setLocation(null);
           setIsLoadingLocation(false);
           toast.error(errorMessage);
         },
@@ -110,13 +102,7 @@ export function VisitProof({ onNavigate, customerId = 1, customerName = 'Custome
         }
       );
     } else {
-      const fallbackLocation: LocationData = {
-        lat: 28.6139,
-        lng: 77.2090,
-        address: 'Delhi, India (Browser not supported)',
-        timestamp: Date.now()
-      };
-      setLocation(fallbackLocation);
+      setLocation(null);
       setIsLoadingLocation(false);
       toast.error('Geolocation not supported by your device');
     }
@@ -235,9 +221,8 @@ export function VisitProof({ onNavigate, customerId = 1, customerName = 'Custome
       // Navigate back or to confirmation screen
       onNavigate('history');
     } catch (error: any) {
-      console.warn('Backend recordVisit fallback:', error);
-      toast.success('Visit proof saved locally');
-      onNavigate('history');
+      console.error('Backend recordVisit error:', error);
+      toast.error(error.message || 'Failed to record visit proof');
     } finally {
       setIsSubmitting(false);
     }

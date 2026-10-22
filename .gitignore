@@ -32,3 +32,9 @@ Thumbs.db
 # Large Archives
 *.zip
 *.tar.gz
+
+# Uploads and temporary media
+customer_repayments/
+Backend/customer_repayments/
+uploads/
+Backend/uploads/

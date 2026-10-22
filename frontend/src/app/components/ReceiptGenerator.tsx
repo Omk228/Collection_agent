@@ -37,10 +37,10 @@ interface PaymentReceiptData {
   };
   companyDetails: {
     name: string;
-    address: string;
-    phone: string;
-    email: string;
-    registrationNumber: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    registrationNumber?: string;
   };
 }
 
@@ -226,11 +226,19 @@ ${paymentData.companyDetails.phone}`;
           {/* Company Header */}
           <div className="text-center border-b pb-4">
             <h1 className="text-2xl font-bold text-primary">{paymentData.companyDetails.name}</h1>
-            <p className="text-sm text-muted-foreground">{paymentData.companyDetails.address}</p>
-            <p className="text-sm text-muted-foreground">
-              Phone: {paymentData.companyDetails.phone} | Email: {paymentData.companyDetails.email}
-            </p>
-            <p className="text-xs text-muted-foreground">Reg. No: {paymentData.companyDetails.registrationNumber}</p>
+            {paymentData.companyDetails.address ? (
+              <p className="text-sm text-muted-foreground">{paymentData.companyDetails.address}</p>
+            ) : null}
+            {(paymentData.companyDetails.phone || paymentData.companyDetails.email) ? (
+              <p className="text-sm text-muted-foreground">
+                {paymentData.companyDetails.phone ? `Phone: ${paymentData.companyDetails.phone}` : ''}
+                {paymentData.companyDetails.phone && paymentData.companyDetails.email ? ' | ' : ''}
+                {paymentData.companyDetails.email ? `Email: ${paymentData.companyDetails.email}` : ''}
+              </p>
+            ) : null}
+            {paymentData.companyDetails.registrationNumber ? (
+              <p className="text-xs text-muted-foreground">Reg. No: {paymentData.companyDetails.registrationNumber}</p>
+            ) : null}
           </div>
 
           {/* Receipt Header */}

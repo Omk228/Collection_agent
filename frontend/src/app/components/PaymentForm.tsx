@@ -113,11 +113,11 @@ export function PaymentForm({ customer, onNavigate, onPaymentRecorded }: Payment
           nextEmiAmount: parseFloat(paymentData.amount)
         },
         companyDetails: {
-          name: 'Fundlelo Financial Services',
-          address: 'A-90 Sector 2 Noida Uttar Pradesh 201301',
-          phone: '+91-1800-123-4567',
-          email: 'support@fundlelo.com',
-          registrationNumber: 'CIN: U65991UP2018PTC078953'
+          name: 'Fundlelo - Product of Salora Capital',
+          address: '',
+          phone: '',
+          email: '',
+          registrationNumber: ''
         }
       };
       

@@ -20,12 +20,7 @@ export function useGeolocation(options: PositionOptions = { enableHighAccuracy: 
       const cached = localStorage.getItem('agent_last_gps');
       if (cached) return JSON.parse(cached);
     } catch (_) {}
-    return {
-      latitude: 28.6738,
-      longitude: 77.1005,
-      accuracy: 20,
-      timestamp: Date.now()
-    };
+    return null;
   });
 
   const [isTracking, setIsTracking] = useState(false);

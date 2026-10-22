@@ -37,28 +37,13 @@ async function getActiveCollectionAgents() {
     `);
 
     if (agents.length === 0) {
-      // Fallback default agent
-      return [{
-        id: 388,
-        agent_code: 'AG001',
-        name: 'Collection Agent',
-        email: 'collectionagent@fundlelo.site',
-        phone: '+919876543210',
-        status: 'ACTIVE'
-      }];
+      return [];
     }
 
     return agents;
   } catch (error) {
     console.error('[distributionService] Error getting active collection agents:', error.message);
-    return [{
-      id: 388,
-      agent_code: 'AG001',
-      name: 'Collection Agent',
-      email: 'collectionagent@fundlelo.site',
-      phone: '+919876543210',
-      status: 'ACTIVE'
-    }];
+    return [];
   }
 }
 
@@ -151,22 +136,11 @@ async function autoAssignSentCases() {
       }
     }
 
-    // 4. Purge any cases from collection_customers that are Closed/Settled or no longer SENT_TO_COLLECTION_AGENT
+    // 4. Clean up only invalid mock loans; do NOT purge paid/settled cases so collection agents can view paid records
     await query(`
       DELETE FROM collection_customers 
-      WHERE loan_id IN (
-        SELECT id FROM loan_accounts 
-        WHERE status IN ('Closed', 'Settled', 'CLOSED', 'SETTLED')
-           OR (status != 'SENT_TO_COLLECTION_AGENT' AND status IS NOT NULL)
-      )
-    `);
-
-    await query(`
-      DELETE FROM collection_customers 
-      WHERE loan_id IN (
-        SELECT CONCAT('LN-', lead_number) FROM leads 
-        WHERE status != 'SENT_TO_COLLECTION_AGENT' AND status IS NOT NULL
-      )
+      WHERE loan_id LIKE 'LN-FLD-%'
+         OR loan_id = 'LN-LEAD-302457'
     `);
 
     // 5. Track current case count per agent for load-balanced Round-Robin
@@ -192,7 +166,7 @@ async function autoAssignSentCases() {
     for (const item of allSentCases) {
       // Check if already assigned in collection_customers
       const existing = await query(`
-        SELECT id, assigned_agent_code, status 
+        SELECT id, assigned_agent_code, status, amount_due 
         FROM collection_customers 
         WHERE loan_id = ?
       `, [item.loan_id]);
@@ -201,6 +175,11 @@ async function autoAssignSentCases() {
 
       if (existing.length > 0) {
         // Case already exists in collection_customers
+        // If customer is already paid or amount_due is 0, preserve their paid status and don't reset amount_due
+        if (existing[0].status === 'paid' || parseFloat(existing[0].amount_due) <= 0) {
+          continue;
+        }
+
         const currentAgentCode = existing[0].assigned_agent_code;
         const agentExists = activeAgents.find(a => a.agent_code === currentAgentCode);
 
@@ -212,15 +191,13 @@ async function autoAssignSentCases() {
           targetAgent = pickNextRoundRobinAgent(activeAgents, agentLoadMap);
         }
 
-        // Ensure status and amount are up to date
+        // Ensure agent assignment is up to date
         await query(`
           UPDATE collection_customers 
           SET assigned_agent_code = ?,
-              status = 'SENT_TO_COLLECTION_AGENT',
-              amount_due = ?,
               updated_at = NOW()
           WHERE id = ?
-        `, [targetAgent.agent_code, parseFloat(item.amount_due) || 0, existing[0].id]);
+        `, [targetAgent.agent_code, existing[0].id]);
 
       } else {
         // NEW UNASSIGNED CASE: Select agent using Round-Robin (least loaded first)
@@ -249,10 +226,13 @@ async function autoAssignSentCases() {
           else if (parts[2] && parts[2].length === 4) formattedDue = `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
 
+        const caseTenure = parseInt(item.tenure, 10) || 30;
+        const caseRemainingTenure = parseInt(item.remaining_tenure, 10) || caseTenure;
+
         await query(`
           INSERT INTO collection_customers
           (name, phone, email, address, loan_id, loan_amount, amount_due, emi_amount, due_date, status, days_past_due, principal_balance, interest_rate, loan_tenure, remaining_tenure, assigned_agent_code, latitude, longitude)
-          VALUES (?, ?, ?, 'Delhi NCR', ?, ?, ?, ?, ?, 'SENT_TO_COLLECTION_AGENT', 15, ?, 16.0, 12, 6, ?, 28.6139, 77.2090)
+          VALUES (?, ?, ?, 'Delhi NCR', ?, ?, ?, ?, ?, 'SENT_TO_COLLECTION_AGENT', 0, ?, 16.0, ?, ?, ?, 28.6139, 77.2090)
         `, [
           item.name || 'Borrower',
           item.phone || '9999999999',
@@ -263,6 +243,8 @@ async function autoAssignSentCases() {
           parseFloat(item.emi_amount) || 5000,
           formattedDue,
           parseFloat(item.loan_amount) || 50000,
+          caseTenure,
+          caseRemainingTenure,
           targetAgent.agent_code
         ]);
 

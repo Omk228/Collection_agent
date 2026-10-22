@@ -164,24 +164,27 @@ async function recordPayment(req, res, next) {
       console.warn('[Sync Warning] customer_repayments insert:', err.message);
     }
 
-    // 5. UPDATE: Update last_payment on collection_customers (keeps SENT_TO_COLLECTION_AGENT until accounts verification)
+    // 5. UPDATE: Update amount_due and last_payment on collection_customers
     await query(`
       UPDATE collection_customers 
-      SET last_payment = CURRENT_DATE(),
+      SET amount_due = GREATEST(0, amount_due - ?),
+          last_payment = CURRENT_DATE(),
+          status = CASE WHEN (amount_due - ?) <= 0 THEN 'paid' ELSE status END,
           updated_at = NOW()
       WHERE id = ? OR loan_id = ?
-    `, [customerId || 0, resolvedLoanId || '']);
+    `, [parsedAmount, parsedAmount, customerId || 0, resolvedLoanId || '']);
 
-    // 6. UPDATE: In loan_accounts, record payment but PRESERVE SENT_TO_COLLECTION_AGENT status
-    // Loan will only be marked closed/settled when Accounts panel approves the repayment
+    // 6. UPDATE: In loan_accounts, record payment and reduce outstanding balance
     if (resolvedLoanId) {
       try {
         await query(`
           UPDATE loan_accounts
           SET total_paid = total_paid + ?,
+              outstanding = GREATEST(0, outstanding - ?),
+              status = CASE WHEN (outstanding - ?) <= 0 THEN 'Settled' ELSE status END,
               updated_at = NOW()
           WHERE id = ? OR application_id = ?
-        `, [parsedAmount, resolvedLoanId, resolvedLoanId]);
+        `, [parsedAmount, parsedAmount, parsedAmount, resolvedLoanId, resolvedLoanId]);
       } catch (err) {
         console.warn('[Sync Warning] loan_accounts update:', err.message);
       }

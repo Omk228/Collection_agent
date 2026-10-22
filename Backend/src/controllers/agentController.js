@@ -17,12 +17,12 @@ async function getProfile(req, res, next) {
             id: 'AG001',
             name: pu.name,
             email: pu.email,
-            phone: pu.phone || '+919876543210',
+            phone: pu.phone || '',
             role: pu.role, // 'COLLECTION AGENT'
-            territory: 'Delhi NCR',
-            experience: '3 years',
-            rating: 4.9,
-            avatar: null,
+            territory: pu.territory || null,
+            experience: pu.experience || null,
+            rating: pu.rating ? parseFloat(pu.rating) : null,
+            avatar: pu.avatar || null,
             status: pu.status,
             shiftActive: true
           }
@@ -33,7 +33,7 @@ async function getProfile(req, res, next) {
     // 2. Check collection_agents
     const agents = await query('SELECT * FROM collection_agents WHERE agent_code = ? OR email = ? LIMIT 1', [agentCode, email || '']);
     if (agents.length === 0) {
-      // Fallback to active collection agent in panel_users
+      // Check active collection agent in panel_users
       const anyPu = await query('SELECT * FROM panel_users WHERE role = "COLLECTION AGENT" OR role LIKE "%COLL%" LIMIT 1');
       if (anyPu.length > 0) {
         const pu = anyPu[0];
@@ -45,10 +45,10 @@ async function getProfile(req, res, next) {
             email: pu.email,
             phone: pu.phone,
             role: pu.role,
-            territory: 'Delhi NCR',
-            experience: '3 years',
-            rating: 4.9,
-            avatar: null,
+            territory: pu.territory || null,
+            experience: pu.experience || null,
+            rating: pu.rating ? parseFloat(pu.rating) : null,
+            avatar: pu.avatar || null,
             status: pu.status,
             shiftActive: true
           }
@@ -66,10 +66,10 @@ async function getProfile(req, res, next) {
         email: agent.email,
         phone: agent.phone,
         role: agent.role,
-        territory: agent.territory || 'Delhi NCR',
-        experience: agent.experience || '3 years',
-        rating: parseFloat(agent.rating) || 4.9,
-        avatar: agent.avatar,
+        territory: agent.territory || null,
+        experience: agent.experience || null,
+        rating: agent.rating ? parseFloat(agent.rating) : null,
+        avatar: agent.avatar || null,
         status: agent.status,
         shiftActive: Boolean(agent.shift_active)
       }

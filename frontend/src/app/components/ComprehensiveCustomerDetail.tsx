@@ -69,8 +69,23 @@ interface Customer {
   interestRate: number;
   loanTenure: number;
   remainingTenure: number;
+  totalRepayable?: number;
+  totalPaid?: number;
+  totalInterest?: number;
+  loanStartDate?: string;
+  loanEndDate?: string;
+  disbursedOn?: string;
+  tenureUnit?: string;
   coApplicantName?: string;
   coApplicantPhone?: string;
+  coApplicantRelation?: string;
+  references?: Array<{
+    name: string;
+    phone: string;
+    relation?: string;
+    email?: string;
+    address?: string;
+  }>;
   occupation?: string;
   monthlyIncome?: number;
   latitude?: number;
@@ -97,7 +112,46 @@ interface ComprehensiveCustomerDetailProps {
   onRecordPayment: () => void;
 }
 
-export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPayment }: ComprehensiveCustomerDetailProps) {
+const formatPaymentRecord = (p: any): Payment => {
+  const amt = Number(p.amount) || 0;
+  return {
+    id: p.id,
+    date: p.date ? new Date(p.date).toISOString().split('T')[0] : (p.payment_date ? new Date(p.payment_date).toISOString().split('T')[0] : 'Today'),
+    amount: amt,
+    method: (p.method || p.mode || p.payment_mode || 'CASH').toUpperCase(),
+    status: p.status === 'success' ? 'Completed' : (p.status || 'Completed'),
+    receiptNumber: p.receiptNumber || p.receipt_number || ('RCP-' + String(p.id || Date.now()).slice(-6)),
+    principalAmount: Number(p.principalAmount) || Number(p.principal_amount) || Math.floor(amt * 0.7),
+    interestAmount: Number(p.interestAmount) || Number(p.interest_amount) || Math.floor(amt * 0.3),
+    penalty: Number(p.penalty) || 0,
+    collectedBy: p.collectedBy || p.agent_name || p.agentCode || 'Collection Agent',
+    transactionId: p.transactionId || p.reference || p.transaction_reference || p.receiptNumber || ''
+  };
+};
+
+export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate, onRecordPayment }: ComprehensiveCustomerDetailProps) {
+  const [customer, setCustomer] = useState<Customer>(propCustomer);
+
+  useEffect(() => {
+    if (propCustomer) {
+      setCustomer(prev => ({
+        ...prev,
+        ...propCustomer,
+        loanStartDate: propCustomer.loanStartDate || prev.loanStartDate,
+        loanEndDate: propCustomer.loanEndDate || prev.loanEndDate,
+        disbursedOn: propCustomer.disbursedOn || prev.disbursedOn,
+        tenureUnit: propCustomer.tenureUnit || prev.tenureUnit,
+        totalRepayable: propCustomer.totalRepayable || prev.totalRepayable,
+        totalPaid: propCustomer.totalPaid || prev.totalPaid,
+        totalInterest: propCustomer.totalInterest || prev.totalInterest,
+        coApplicantName: propCustomer.coApplicantName || prev.coApplicantName,
+        coApplicantPhone: propCustomer.coApplicantPhone || prev.coApplicantPhone,
+        coApplicantRelation: (propCustomer as any).coApplicantRelation || (prev as any).coApplicantRelation,
+        references: (propCustomer as any).references || (prev as any).references,
+      }));
+    }
+  }, [propCustomer]);
+
   const [activeTab, setActiveTab] = useState('overview');
   const [showReceipt, setShowReceipt] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
@@ -119,9 +173,9 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
   const { coords, distanceTo } = useGeolocation();
 
   useEffect(() => {
-    if (customer?.id) {
+    if (propCustomer?.id) {
       // Check if arrival was already marked today for this customer
-      const savedArrival = localStorage.getItem(`arrived_case_${customer.id}`);
+      const savedArrival = localStorage.getItem(`arrived_case_${propCustomer.id}`);
       let alreadyArrived = false;
       if (savedArrival) {
         try {
@@ -141,35 +195,31 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
       }
       setShowLocationView(false);
 
-      api.customers.getCustomerById(customer.id)
+      api.customers.getCustomerById(propCustomer.id)
         .then(res => {
+          if (res.customer) {
+            setCustomer(res.customer);
+          }
           if (res.customer?.paymentHistory?.length) {
-            setLivePayments(res.customer.paymentHistory.map((p: any) => ({
-              id: p.id,
-              date: p.date ? new Date(p.date).toISOString().split('T')[0] : 'Today',
-              amount: p.amount,
-              method: p.mode?.toUpperCase() || 'CASH',
-              status: p.status === 'success' ? 'Completed' : p.status,
-              receiptNumber: p.receiptNumber,
-              principalAmount: Math.floor(p.amount * 0.7),
-              interestAmount: Math.floor(p.amount * 0.3),
-              collectedBy: 'AG001',
-              transactionId: p.reference || p.receiptNumber
-            })));
+            setLivePayments(res.customer.paymentHistory.map(formatPaymentRecord));
           }
         })
         .catch(err => console.warn('Failed to load customer payment history:', err));
 
       // Fetch verified customer documents & KYC
       setIsLoadingDocs(true);
-      api.documents.getCustomerDocuments(customer.id)
+      const docLookupId = propCustomer.loanId || propCustomer.id;
+      api.documents.getCustomerDocuments(docLookupId, {
+        loanId: propCustomer.loanId,
+        phone: propCustomer.phone
+      })
         .then(res => {
           if (res?.data) setCustomerDocs(res.data);
         })
         .catch(err => console.warn('Failed to load customer documents:', err))
         .finally(() => setIsLoadingDocs(false));
     }
-  }, [customer?.id]);
+  }, [propCustomer?.id, propCustomer?.loanId]);
 
   const handleMarkArrived = () => {
     if (!customer) return;
@@ -214,8 +264,17 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
     interestRate: customer.interestRate || 0,
     loanTenure: customer.loanTenure || 0,
     remainingTenure: customer.remainingTenure || 0,
-    coApplicantName: customer.coApplicantName || 'N/A',
-    coApplicantPhone: customer.coApplicantPhone || 'N/A',
+    totalRepayable: (customer as any).totalRepayable || (customer.amountDue || customer.loanAmount),
+    totalPaid: (customer as any).totalPaid || 0,
+    totalInterest: (customer as any).totalInterest || Math.max(0, ((customer as any).totalRepayable || customer.amountDue || 0) - (customer.loanAmount || 0)),
+    loanStartDate: (customer as any).loanStartDate || (customer as any).disbursedOn || '',
+    loanEndDate: (customer as any).loanEndDate || customer.dueDate || '',
+    disbursedOn: (customer as any).disbursedOn || '',
+    tenureUnit: (customer as any).tenureUnit || '',
+    coApplicantName: customer.coApplicantName || '',
+    coApplicantPhone: customer.coApplicantPhone || '',
+    coApplicantRelation: (customer as any).coApplicantRelation || 'Reference',
+    references: (customer as any).references || [],
     occupation: customer.occupation || '',
     monthlyIncome: customer.monthlyIncome || 0
   };
@@ -253,11 +312,11 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
         nextEmiAmount: enhancedCustomer.emiAmount,
       },
       companyDetails: {
-        name: 'Credeeva Financial Services Pvt. Ltd.',
-        address: 'A-90 Sector 2 Noida Uttar Pradesh 201301',
-        phone: '+91-1800-123-4567',
-        email: 'support@credeeva.com',
-        registrationNumber: 'CIN: U65991UP2018PTC078953',
+        name: 'Fundlelo - Product of Salora Capital',
+        address: '',
+        phone: '',
+        email: '',
+        registrationNumber: '',
       },
     };
   };
@@ -315,14 +374,23 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
     return 'Critical';
   };
 
-  const completionPercentage = ((enhancedCustomer.loanTenure - enhancedCustomer.remainingTenure) / enhancedCustomer.loanTenure) * 100;
+  const totalRepayable = enhancedCustomer.totalRepayable || (enhancedCustomer.loanAmount + (enhancedCustomer.totalInterest || 0)) || enhancedCustomer.amountDue;
+  const actualPaid = paymentHistory.reduce((sum, payment) => sum + payment.amount, 0) || (enhancedCustomer.totalPaid || 0);
+  const remainingAmount = Math.max(0, totalRepayable - actualPaid);
+  const completionPercentage = totalRepayable > 0 ? Math.min(100, Math.max(0, Math.round((actualPaid / totalRepayable) * 100))) : 0;
   const penaltyAmount = enhancedCustomer.overdueDays > 0 ? Math.floor(enhancedCustomer.emiAmount * 0.02 * (enhancedCustomer.overdueDays / 30)) : 0;
   const totalDue = enhancedCustomer.amountDue + penaltyAmount;
 
-  const totalPaid = paymentHistory.reduce((sum, payment) => sum + payment.amount, 0);
-  const totalPrincipalPaid = paymentHistory.reduce((sum, payment) => sum + payment.principalAmount, 0);
-  const totalInterestPaid = paymentHistory.reduce((sum, payment) => sum + payment.interestAmount, 0);
+  const totalPaid = actualPaid;
+  const totalPrincipalPaid = paymentHistory.reduce((sum, payment) => sum + (payment.principalAmount || 0), 0);
+  const totalInterestPaid = paymentHistory.reduce((sum, payment) => sum + (payment.interestAmount || 0), 0);
   const totalPenaltyPaid = paymentHistory.reduce((sum, payment) => sum + (payment.penalty || 0), 0);
+
+  const isShortTermDays = enhancedCustomer.tenureUnit === 'days' || enhancedCustomer.loanTenure > 12;
+  const tenureDisplayUnit = enhancedCustomer.tenureUnit || (isShortTermDays ? 'days' : 'months');
+  const totalEmis = isShortTermDays ? 1 : Math.max(1, enhancedCustomer.loanTenure);
+  const paidEmis = actualPaid >= totalRepayable && totalRepayable > 0 ? totalEmis : (isShortTermDays ? 0 : Math.min(totalEmis, Math.floor(actualPaid / (enhancedCustomer.emiAmount || 1))));
+  const remainingEmis = Math.max(0, totalEmis - paidEmis);
 
   const custLat = Number((customer as any)?.latitude) || 28.6782;
   const custLng = Number((customer as any)?.longitude) || 77.1120;
@@ -667,10 +735,21 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-3">
-              <Button onClick={() => setIsPaymentDrawerOpen(true)} className="flex items-center justify-center gap-2 font-semibold">
-                <DollarSign className="w-4 h-4" />
-                Collect Payment
-              </Button>
+              {((enhancedCustomer as any).isPaid || enhancedCustomer.amountDue <= 0 || enhancedCustomer.status === 'paid' || enhancedCustomer.status === 'Settled' || enhancedCustomer.status === 'Closed') ? (
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 font-bold py-2 px-3 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-xs shadow-xs text-center">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Paid</span>
+                  </div>
+                  <span className="text-muted-foreground text-[10px] hidden sm:inline">•</span>
+                  <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">Sent to Accounts for Verification</span>
+                </div>
+              ) : (
+                <Button onClick={() => setIsPaymentDrawerOpen(true)} className="flex items-center justify-center gap-2 font-semibold">
+                  <DollarSign className="w-4 h-4" />
+                  Collect Payment
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 onClick={() => { window.location.href = `tel:${enhancedCustomer.phone}`; }} 
@@ -804,19 +883,21 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm text-muted-foreground">Loan Start Date</p>
-                      <p className="font-medium">2023-01-15</p>
+                      <p className="font-medium">{enhancedCustomer.loanStartDate || enhancedCustomer.disbursedOn || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Total Tenure</p>
-                      <p className="font-medium">{enhancedCustomer.loanTenure} months</p>
+                      <p className="font-medium">{enhancedCustomer.loanTenure} {tenureDisplayUnit}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Remaining Tenure</p>
-                      <p className="font-medium text-red-600">{enhancedCustomer.remainingTenure} months</p>
+                      <p className={`font-medium ${enhancedCustomer.remainingTenure > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                        {enhancedCustomer.remainingTenure} {tenureDisplayUnit}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Loan End Date</p>
-                      <p className="font-medium">2025-01-15</p>
+                      <p className="font-medium">{enhancedCustomer.loanEndDate || enhancedCustomer.dueDate || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -829,8 +910,8 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
                   </div>
                   <Progress value={completionPercentage} className="h-3" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{enhancedCustomer.loanTenure - enhancedCustomer.remainingTenure} EMIs paid</span>
-                    <span>{enhancedCustomer.remainingTenure} EMIs remaining</span>
+                    <span>{paidEmis} {isShortTermDays ? 'Payment' : 'EMIs'} paid</span>
+                    <span>{remainingEmis} {isShortTermDays ? 'Payment' : 'EMIs'} remaining</span>
                   </div>
                 </div>
 
@@ -838,15 +919,15 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
                 <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">Total Paid</p>
-                    <p className="font-medium text-green-600">₹{totalPaid.toLocaleString()}</p>
+                    <p className="font-medium text-green-600">₹{actualPaid.toLocaleString()}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">Remaining Amount</p>
-                    <p className="font-medium text-orange-600">₹{(enhancedCustomer.remainingTenure * enhancedCustomer.emiAmount).toLocaleString()}</p>
+                    <p className="font-medium text-orange-600">₹{remainingAmount.toLocaleString()}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">Total Interest</p>
-                    <p className="font-medium text-purple-600">₹{((enhancedCustomer.loanTenure * enhancedCustomer.emiAmount) - enhancedCustomer.loanAmount).toLocaleString()}</p>
+                    <p className="font-medium text-purple-600">₹{(enhancedCustomer.totalInterest || Math.max(0, totalRepayable - enhancedCustomer.loanAmount)).toLocaleString()}</p>
                   </div>
                 </div>
               </CardContent>
@@ -872,11 +953,11 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Principal Component</p>
-                    <p className="font-medium">₹{Math.floor(enhancedCustomer.emiAmount * 0.7).toLocaleString()}</p>
+                    <p className="font-medium">₹{Math.floor(enhancedCustomer.principalBalance || enhancedCustomer.loanAmount).toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Interest Component</p>
-                    <p className="font-medium">₹{Math.floor(enhancedCustomer.emiAmount * 0.3).toLocaleString()}</p>
+                    <p className="font-medium">₹{Math.floor(enhancedCustomer.totalInterest || Math.max(0, enhancedCustomer.emiAmount - enhancedCustomer.loanAmount)).toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -910,30 +991,98 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
               </CardContent>
             </Card>
 
-            {/* Co-applicant Information */}
-            {enhancedCustomer.coApplicantName && (
+            {/* Customer References & Emergency Contacts */}
+            {((enhancedCustomer.references && enhancedCustomer.references.length > 0) || (enhancedCustomer.coApplicantName && enhancedCustomer.coApplicantName !== 'N/A')) && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    Co-applicant Information
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-primary" />
+                      <span>Customer References</span>
+                    </div>
+                    {enhancedCustomer.references && enhancedCustomer.references.length > 0 && (
+                      <Badge variant="secondary" className="text-xs font-normal">
+                        {enhancedCustomer.references.length} {enhancedCustomer.references.length === 1 ? 'Reference' : 'References'} Available
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Co-applicant Name</p>
-                      <p className="font-medium">{enhancedCustomer.coApplicantName}</p>
+                  {enhancedCustomer.references && enhancedCustomer.references.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {enhancedCustomer.references.map((ref, idx) => (
+                        <div 
+                          key={idx}
+                          className="p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors space-y-3"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-base text-card-foreground">{ref.name}</p>
+                                {ref.relation && (
+                                  <Badge variant="outline" className="text-xs bg-background">
+                                    {ref.relation}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                Reference #{idx + 1}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">Contact Number</p>
+                            <p className="font-mono font-medium text-sm text-foreground">
+                              {ref.phone || 'N/A'}
+                            </p>
+                          </div>
+
+                          {ref.phone && (
+                            <div className="flex items-center gap-2 pt-1">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 text-xs flex-1 gap-1.5"
+                                onClick={() => makeCall(ref.phone)}
+                              >
+                                <Phone className="w-3.5 h-3.5 text-blue-600" />
+                                Call Reference
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs flex-1 gap-1.5 text-green-600 hover:text-green-700"
+                                onClick={() => {
+                                  window.open(`https://wa.me/${ref.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hello ${ref.name}, this is regarding customer ${enhancedCustomer.name}. Kindly request them to contact Fundlelo Collections.`)}`, '_blank');
+                                }}
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                WhatsApp
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Co-applicant Phone</p>
-                      <p className="font-medium">{enhancedCustomer.coApplicantPhone}</p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Reference Name</p>
+                          <p className="font-medium">{enhancedCustomer.coApplicantName}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Reference Phone</p>
+                          <p className="font-medium">{enhancedCustomer.coApplicantPhone}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => makeCall(enhancedCustomer.coApplicantPhone || '')}>
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call Reference
+                      </Button>
                     </div>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => makeCall(enhancedCustomer.coApplicantPhone || '')}>
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Co-applicant
-                  </Button>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1008,7 +1157,7 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-lg text-green-600">
-                            ₹{payment.amount.toLocaleString()}
+                            ₹{(payment.amount || 0).toLocaleString()}
                           </span>
                           <Button 
                             size="sm" 
@@ -1024,18 +1173,18 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
                           <p className="text-muted-foreground">Principal</p>
-                          <p className="font-medium">₹{payment.principalAmount.toLocaleString()}</p>
+                          <p className="font-medium">₹{(payment.principalAmount ?? Math.floor((payment.amount || 0) * 0.7)).toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Interest</p>
-                          <p className="font-medium">₹{payment.interestAmount.toLocaleString()}</p>
+                          <p className="font-medium">₹{(payment.interestAmount ?? Math.floor((payment.amount || 0) * 0.3)).toLocaleString()}</p>
                         </div>
-                        {payment.penalty && (
+                        {payment.penalty ? (
                           <div>
                             <p className="text-muted-foreground">Penalty</p>
-                            <p className="font-medium text-red-600">₹{payment.penalty.toLocaleString()}</p>
+                            <p className="font-medium text-red-600">₹{(payment.penalty || 0).toLocaleString()}</p>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                       
                       <div className="mt-3 pt-3 border-t">
@@ -1062,14 +1211,21 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button 
-                    size="lg"
-                    onClick={() => setIsPaymentDrawerOpen(true)} 
-                    className="font-semibold shadow-xs flex items-center justify-center gap-2 h-12 bg-primary hover:bg-primary/90 text-white text-sm"
-                  >
-                    <DollarSign className="w-5 h-5" />
-                    Collect Payment & Proof
-                  </Button>
+                  {((enhancedCustomer as any).isPaid || enhancedCustomer.amountDue <= 0 || enhancedCustomer.status === 'paid' || enhancedCustomer.status === 'Settled' || enhancedCustomer.status === 'Closed') ? (
+                    <div className="h-12 flex items-center justify-center gap-2 font-bold px-4 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-xs shadow-xs text-center">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                      <span>Paid • Sent to Accounts for Verification</span>
+                    </div>
+                  ) : (
+                    <Button 
+                      size="lg"
+                      onClick={() => setIsPaymentDrawerOpen(true)} 
+                      className="font-semibold shadow-xs flex items-center justify-center gap-2 h-12 bg-primary hover:bg-primary/90 text-white text-sm"
+                    >
+                      <DollarSign className="w-5 h-5" />
+                      Collect Payment & Proof
+                    </Button>
+                  )}
                   <Button 
                     size="lg"
                     variant="outline" 
@@ -1109,8 +1265,11 @@ export function ComprehensiveCustomerDetail({ customer, onNavigate, onRecordPaym
         onPaymentSuccess={() => {
           if (customer?.id) {
             api.customers.getCustomerById(customer.id).then(res => {
+              if (res.customer) {
+                setCustomer(res.customer);
+              }
               if (res.customer?.paymentHistory) {
-                setLivePayments(res.customer.paymentHistory);
+                setLivePayments(res.customer.paymentHistory.map(formatPaymentRecord));
               }
             }).catch(() => {});
           }
