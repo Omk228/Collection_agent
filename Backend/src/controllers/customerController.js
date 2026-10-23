@@ -184,14 +184,11 @@ async function getCustomers(req, res, next) {
       const totalPaid = Math.max(parseFloat(c.la_total_paid) || 0, parseFloat(c.total_collected) || 0);
       const totalInterest = parseFloat(c.l_interest_amount) || Math.max(0, totalRepayable - (parseFloat(c.loan_amount) || 0));
 
-      const isPaid = (c.status === 'paid') ||
-                     (c.la_status && ['Settled', 'Closed', 'SETTLED', 'CLOSED'].includes(c.la_status)) ||
-                     (parseFloat(c.amount_due) <= 0) ||
-                     (c.la_outstanding !== null && c.la_outstanding !== undefined && parseFloat(c.la_outstanding) <= 0 && totalPaid > 0) ||
-                     (totalRepayable > 0 && totalPaid >= totalRepayable);
+      const isCollected = (c.status === 'completed' || c.status === 'Completed' || c.status === 'paid' || totalPaid > 0);
+      const isPaid = isCollected;
 
-      const resolvedAmountDue = isPaid ? 0 : Math.max(0, parseFloat(c.amount_due) || 0);
-      const resolvedStatus = isPaid ? 'paid' : c.status;
+      const resolvedAmountDue = isCollected ? 0 : Math.max(0, parseFloat(c.amount_due) || 0);
+      const resolvedStatus = isCollected ? 'Completed' : c.status;
 
       return {
         id: c.id,
@@ -368,14 +365,11 @@ async function getCustomerById(req, res, next) {
     const totalPaid = Math.max(parseFloat(loanAcc.total_paid) || 0, parseFloat(agentPayments[0]?.total) || 0);
     const totalInterest = parseFloat(loanDb.interest_amount) || Math.max(0, totalRepayable - originalPrincipal);
 
-    const isPaid = (c.status === 'paid') ||
-                   (loanAcc.status && ['Settled', 'Closed', 'SETTLED', 'CLOSED'].includes(loanAcc.status)) ||
-                   (parseFloat(c.amount_due) <= 0) ||
-                   (loanAcc.outstanding !== null && loanAcc.outstanding !== undefined && parseFloat(loanAcc.outstanding) <= 0 && totalPaid > 0) ||
-                   (totalRepayable > 0 && totalPaid >= totalRepayable);
+    const hasCollectedPayment = (c.status === 'completed' || c.status === 'Completed' || c.status === 'paid' || totalPaid > 0);
+    const isPaid = hasCollectedPayment;
 
-    const resolvedAmountDue = isPaid ? 0 : (parseFloat(c.amount_due) || parseFloat(loanAcc.outstanding) || originalPrincipal);
-    const resolvedStatus = isPaid ? 'paid' : c.status;
+    const resolvedAmountDue = hasCollectedPayment ? 0 : (parseFloat(c.amount_due) || parseFloat(loanAcc.outstanding) || originalPrincipal);
+    const resolvedStatus = hasCollectedPayment ? 'Completed' : c.status;
 
     const customer = {
       id: c.id,

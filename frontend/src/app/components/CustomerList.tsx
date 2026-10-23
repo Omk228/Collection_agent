@@ -115,8 +115,9 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
       case 'assigned': return 'Assigned';
       case 'current': return 'Current';
       case 'overdue': return 'Overdue';
-      case 'delinquent': return 'Defaulted';
-      case 'paid': return 'Paid';
+      case 'completed':
+      case 'Completed':
+      case 'paid': return 'Completed';
       default: return status || 'Unknown';
     }
   };
@@ -266,13 +267,13 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
 
                 <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {((customer as any).isPaid || customer.amountDue <= 0 || customer.status === 'paid' || customer.status === 'closed' || customer.status === 'Settled' || customer.status === 'SETTLED' || customer.status === 'CLOSED') ? (
+                    {((customer as any).isPaid || customer.amountDue <= 0 || customer.status === 'Completed' || customer.status === 'completed' || customer.status === 'paid' || customer.status === 'closed' || customer.status === 'Settled' || customer.status === 'SETTLED' || customer.status === 'CLOSED') ? (
                       <Badge 
                         variant="paid" 
                         className="h-7 sm:h-8 px-2.5 sm:px-3 py-1 font-bold text-xs gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-xs flex items-center shrink-0"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        Paid
+                        Completed
                       </Badge>
                     ) : (
                       <Button

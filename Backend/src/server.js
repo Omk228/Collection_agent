@@ -126,8 +126,31 @@ app.use('/api/agent/tasks', taskRoutes);
 app.use('/api/agent/notifications', notificationRoutes);
 app.use('/api/agent/audit', auditRoutes);
 
+// Static frontend serving if public folder exists
+const staticPath = path.join(__dirname, '../public');
+if (fs.existsSync(staticPath)) {
+  app.use(express.static(staticPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/customer_')) {
+      return next();
+    }
+    res.sendFile(path.join(staticPath, 'index.html'));
+  });
+}
+
+// Root API Endpoint (Prevents 'Cannot GET /')
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'Fund Lelo Collection Agent API is running',
+    health: '/api/health',
+    version: '1.0.0'
+  });
+});
+
 // Error Handler
 app.use(errorHandler);
+
 
 // Start server
 async function startServer() {

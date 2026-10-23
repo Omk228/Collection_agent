@@ -12,7 +12,7 @@ class ApiService {
       try {
         const parsed = JSON.parse(saved);
         return parsed.id || parsed.agent_code || 'AG001';
-      } catch (e) {}
+      } catch (e) { }
     }
     return 'AG001';
   }
@@ -52,8 +52,8 @@ class ApiService {
   // 1. Auth APIs
   auth = {
     login: async (
-      agentId: string, 
-      password: string, 
+      agentId: string,
+      password: string,
       loginType = 'password',
       locationData?: { latitude?: number; longitude?: number; accuracy?: number; address?: string }
     ) => {
@@ -87,18 +87,18 @@ class ApiService {
             };
             const currentLogs = JSON.parse(localStorage.getItem('agentLocationLogs') || '[]');
             localStorage.setItem('agentLocationLogs', JSON.stringify([historyItem, ...currentLogs.slice(0, 99)]));
-          } catch (_) {}
+          } catch (_) { }
         }
       }
       return res;
     },
-    sendOtp: (agentId: string) => 
+    sendOtp: (agentId: string) =>
       this.request('/auth/send-otp', {
         method: 'POST',
         body: JSON.stringify({ agentId }),
       }),
     verifyOtp: async (
-      agentId: string, 
+      agentId: string,
       otp: string,
       locationData?: { latitude?: number; longitude?: number; accuracy?: number; address?: string }
     ) => {
@@ -131,7 +131,7 @@ class ApiService {
             };
             const currentLogs = JSON.parse(localStorage.getItem('agentLocationLogs') || '[]');
             localStorage.setItem('agentLocationLogs', JSON.stringify([historyItem, ...currentLogs.slice(0, 99)]));
-          } catch (_) {}
+          } catch (_) { }
         }
       }
       return res;
@@ -149,14 +149,14 @@ class ApiService {
 
   // 2. Agent APIs
   agents = {
-    getProfile: (agentCode?: string) => 
+    getProfile: (agentCode?: string) =>
       this.request(`/agents/profile?agentCode=${agentCode || this.getAgentCode()}`),
-    updateProfile: (data: any) => 
+    updateProfile: (data: any) =>
       this.request('/agents/profile', {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
-    getDashboardStats: (agentCode?: string) => 
+    getDashboardStats: (agentCode?: string) =>
       this.request(`/agents/dashboard-stats?agentCode=${agentCode || this.getAgentCode()}`),
   };
 
@@ -169,14 +169,14 @@ class ApiService {
       query.append('agentCode', this.getAgentCode());
       return this.request(`/customers?${query.toString()}`);
     },
-    getCustomerById: (id: number | string) => 
+    getCustomerById: (id: number | string) =>
       this.request(`/customers/${id}`),
-    createCustomer: (data: any) => 
+    createCustomer: (data: any) =>
       this.request('/customers', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    updateCustomer: (id: number | string, data: any) => 
+    updateCustomer: (id: number | string, data: any) =>
       this.request(`/customers/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -196,7 +196,7 @@ class ApiService {
       latitude?: number;
       longitude?: number;
       receiptUrl?: string;
-    }) => 
+    }) =>
       this.request('/payments', {
         method: 'POST',
         body: JSON.stringify({
@@ -212,13 +212,13 @@ class ApiService {
       if (params?.limit) query.append('limit', String(params.limit));
       return this.request(`/payments?${query.toString()}`);
     },
-    getPaymentSummary: () => 
+    getPaymentSummary: () =>
       this.request(`/payments/summary?agentCode=${this.getAgentCode()}`),
   };
 
   // 5. Cash Submissions
   cash = {
-    getStatus: () => 
+    getStatus: () =>
       this.request(`/cash-submissions/status?agentCode=${this.getAgentCode()}`),
     createSubmission: (data: {
       amount: number;
@@ -226,7 +226,7 @@ class ApiService {
       submissionType?: string;
       notes?: string;
       receiptUrl?: string;
-    }) => 
+    }) =>
       this.request('/cash-submissions', {
         method: 'POST',
         body: JSON.stringify({
@@ -234,7 +234,7 @@ class ApiService {
           agentCode: this.getAgentCode(),
         }),
       }),
-    updateStatus: (id: number | string, status: 'APPROVED' | 'REJECTED', approvedBy?: string) => 
+    updateStatus: (id: number | string, status: 'APPROVED' | 'REJECTED', approvedBy?: string) =>
       this.request(`/cash-submissions/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status, approvedBy }),
@@ -243,9 +243,9 @@ class ApiService {
 
   // 6. Attendance APIs
   attendance = {
-    getToday: () => 
+    getToday: () =>
       this.request(`/attendance/today?agentCode=${this.getAgentCode()}`),
-    punchIn: (data: { latitude?: number; longitude?: number; address?: string; batteryLevel?: number }) => 
+    punchIn: (data: { latitude?: number; longitude?: number; address?: string; batteryLevel?: number }) =>
       this.request('/attendance/punch-in', {
         method: 'POST',
         body: JSON.stringify({
@@ -253,7 +253,7 @@ class ApiService {
           agentCode: this.getAgentCode(),
         }),
       }),
-    punchOut: (data: { latitude?: number; longitude?: number; address?: string }) => 
+    punchOut: (data: { latitude?: number; longitude?: number; address?: string }) =>
       this.request('/attendance/punch-out', {
         method: 'POST',
         body: JSON.stringify({
@@ -261,24 +261,24 @@ class ApiService {
           agentCode: this.getAgentCode(),
         }),
       }),
-    getHistory: () => 
+    getHistory: () =>
       this.request(`/attendance/history?agentCode=${this.getAgentCode()}`),
   };
 
   // 7. Location APIs
   location = {
-    ping: (data: { 
-      latitude: number; 
-      longitude: number; 
-      accuracy?: number; 
-      batteryLevel?: number; 
-      speed?: number; 
+    ping: (data: {
+      latitude: number;
+      longitude: number;
+      accuracy?: number;
+      batteryLevel?: number;
+      speed?: number;
       address?: string;
       locationType?: string;
       isLogin?: boolean;
       agentCode?: string;
       agentName?: string;
-    }) => 
+    }) =>
       this.request('/location/ping', {
         method: 'POST',
         body: JSON.stringify({
@@ -299,9 +299,9 @@ class ApiService {
       }
       return this.request(`/location/history?${query.toString()}`);
     },
-    getLive: (agentCode?: string) => 
+    getLive: (agentCode?: string) =>
       this.request(`/location/live?agentCode=${agentCode || this.getAgentCode()}`),
-    getAllAgents: () => 
+    getAllAgents: () =>
       this.request('/location/all-agents'),
   };
 
@@ -321,7 +321,7 @@ class ApiService {
       outcome?: string;
       ptpDate?: string;
       ptpAmount?: number;
-    }) => 
+    }) =>
       this.request('/visits', {
         method: 'POST',
         body: JSON.stringify({
@@ -337,7 +337,7 @@ class ApiService {
       if (params?.limit) query.append('limit', String(params.limit));
       return this.request(`/visits?${query.toString()}`);
     },
-    getAnalytics: () => 
+    getAnalytics: () =>
       this.request(`/visits/analytics?agentCode=${this.getAgentCode()}`),
   };
 
@@ -349,7 +349,7 @@ class ApiService {
       if (status) query.append('status', status);
       return this.request(`/tasks?${query.toString()}`);
     },
-    createTask: (data: any) => 
+    createTask: (data: any) =>
       this.request('/tasks', {
         method: 'POST',
         body: JSON.stringify({
@@ -357,22 +357,22 @@ class ApiService {
           agentCode: this.getAgentCode(),
         }),
       }),
-    updateTask: (id: number | string, data: any) => 
+    updateTask: (id: number | string, data: any) =>
       this.request(`/tasks/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
-    deleteTask: (id: number | string) => 
+    deleteTask: (id: number | string) =>
       this.request(`/tasks/${id}`, { method: 'DELETE' }),
   };
 
   // 10. Notifications
   notifications = {
-    getNotifications: () => 
+    getNotifications: () =>
       this.request(`/notifications?agentCode=${this.getAgentCode()}`),
-    markAsRead: (id: number | string) => 
+    markAsRead: (id: number | string) =>
       this.request(`/notifications/${id}/read`, { method: 'PUT' }),
-    markAllAsRead: () => 
+    markAllAsRead: () =>
       this.request('/notifications/read-all', {
         method: 'PUT',
         body: JSON.stringify({ agentCode: this.getAgentCode() }),
@@ -395,7 +395,7 @@ class ApiService {
       longitude?: number;
       entityType?: string;
       entityId?: string;
-    }) => 
+    }) =>
       this.request('/audit', {
         method: 'POST',
         body: JSON.stringify({
@@ -410,7 +410,7 @@ class ApiService {
   // 12. File Upload (Customer Repayments & Proofs)
   upload = {
     uploadImage: async (
-      file: File, 
+      file: File,
       metadata?: { customerId?: number | string; loanId?: string; userId?: string | number }
     ) => {
       const formData = new FormData();
@@ -445,7 +445,7 @@ class ApiService {
       const qs = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
       return this.request(`/documents/customer/${userId}${qs}`);
     },
-    streamDocumentUrl: (filePath: string) => 
+    streamDocumentUrl: (filePath: string) =>
       resolveSecureDocUrl(`${API_BASE_URL}/documents/stream?path=${encodeURIComponent(filePath)}`),
   };
 }

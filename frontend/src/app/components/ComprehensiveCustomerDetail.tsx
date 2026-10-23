@@ -282,6 +282,13 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
   // Comprehensive payment history strictly from database
   const paymentHistory: Payment[] = livePayments;
 
+  const isCaseCompleted = Boolean(
+    enhancedCustomer.status?.toLowerCase() === 'completed' ||
+    enhancedCustomer.status?.toLowerCase() === 'paid' ||
+    (enhancedCustomer as any).isPaid ||
+    (livePayments && livePayments.length > 0 && livePayments.some(p => p.status === 'Completed' || p.status === 'success'))
+  );
+
   const generateReceiptData = (payment: Payment) => {
     return {
       receiptNumber: payment.receiptNumber,
@@ -438,15 +445,24 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
                   <Badge variant="outline" className="text-xs font-mono font-semibold">
                     {enhancedCustomer.loanId}
                   </Badge>
-                  <Badge variant={getStatusColor(enhancedCustomer.status)}>
-                    {enhancedCustomer.status === 'SENT_TO_COLLECTION_AGENT' ? 'With Collection Agent' : (enhancedCustomer.status.charAt(0).toUpperCase() + enhancedCustomer.status.slice(1))}
+                  <Badge 
+                    variant={isCaseCompleted ? 'default' : getStatusColor(enhancedCustomer.status)}
+                    className={isCaseCompleted ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold' : ''}
+                  >
+                    {isCaseCompleted 
+                      ? 'Completed' 
+                      : (enhancedCustomer.status === 'SENT_TO_COLLECTION_AGENT' ? 'With Collection Agent' : (enhancedCustomer.status.charAt(0).toUpperCase() + enhancedCustomer.status.slice(1)))}
                   </Badge>
-                  {enhancedCustomer.overdueDays > 0 && (
+                  {enhancedCustomer.overdueDays > 0 && !isCaseCompleted && (
                     <span className="text-sm text-destructive">
                       {enhancedCustomer.overdueDays} days overdue
                     </span>
                   )}
-                  {!isArrived ? (
+                  {isCaseCompleted ? (
+                    <Badge variant="outline" className="text-[11px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 flex items-center gap-1 py-0.5">
+                      <CheckCircle2 className="w-3 h-3" /> Completed
+                    </Badge>
+                  ) : !isArrived ? (
                     <Badge variant="outline" className="text-[11px] bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 flex items-center gap-1 py-0.5">
                       <Lock className="w-3 h-3" /> Arrival Required
                     </Badge>
@@ -473,7 +489,7 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
       </div>
 
       {/* STEP 1: CASE LOCATION & ARRIVAL CHECKPOINT */}
-      {(!isArrived || showLocationView) ? (
+      {((!isArrived && !isCaseCompleted) || showLocationView) ? (
         <div className="p-4 space-y-4 max-w-4xl mx-auto">
           {/* If already arrived, give button to return to details */}
           {isArrived && (
@@ -735,11 +751,11 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-3">
-              {((enhancedCustomer as any).isPaid || enhancedCustomer.amountDue <= 0 || enhancedCustomer.status === 'paid' || enhancedCustomer.status === 'Settled' || enhancedCustomer.status === 'Closed') ? (
+              {(isCaseCompleted || (enhancedCustomer as any).isPaid || enhancedCustomer.amountDue <= 0 || enhancedCustomer.status === 'paid' || enhancedCustomer.status === 'Settled' || enhancedCustomer.status === 'Closed') ? (
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 font-bold py-2 px-3 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-xs shadow-xs text-center">
                   <div className="flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Paid</span>
+                    <span>Completed</span>
                   </div>
                   <span className="text-muted-foreground text-[10px] hidden sm:inline">•</span>
                   <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">Sent to Accounts for Verification</span>
@@ -1211,10 +1227,10 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {((enhancedCustomer as any).isPaid || enhancedCustomer.amountDue <= 0 || enhancedCustomer.status === 'paid' || enhancedCustomer.status === 'Settled' || enhancedCustomer.status === 'Closed') ? (
+                  {(isCaseCompleted || (enhancedCustomer as any).isPaid || enhancedCustomer.amountDue <= 0 || enhancedCustomer.status === 'paid' || enhancedCustomer.status === 'Settled' || enhancedCustomer.status === 'Closed') ? (
                     <div className="h-12 flex items-center justify-center gap-2 font-bold px-4 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-xs shadow-xs text-center">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                      <span>Paid • Sent to Accounts for Verification</span>
+                      <span>Completed • Sent to Accounts for Verification</span>
                     </div>
                   ) : (
                     <Button 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription
 } from './ui/sheet';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -14,24 +14,24 @@ import { Textarea } from './ui/textarea';
 import { Card, CardContent } from './ui/card';
 import { Separator } from './ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
-import { 
-  DollarSign, 
-  Upload, 
-  Image as ImageIcon, 
-  CheckCircle2, 
-  AlertCircle, 
-  X, 
-  Loader2, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  CreditCard, 
-  Smartphone, 
-  Building, 
-  FileCheck, 
-  Receipt, 
-  Eye, 
-  Trash2, 
+import {
+  DollarSign,
+  Upload,
+  Image as ImageIcon,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Loader2,
+  Phone,
+  MapPin,
+  Calendar,
+  CreditCard,
+  Smartphone,
+  Building,
+  FileCheck,
+  Receipt,
+  Eye,
+  Trash2,
   History,
   ShieldCheck,
   Check,
@@ -101,13 +101,13 @@ export function CustomerDrawer({
   onNavigate
 }: CustomerDrawerProps) {
   const [activeTab, setActiveTab] = useState<'collect' | 'details' | 'docs' | 'history'>('collect');
-  
+
   // Payment Form States
   const [amount, setAmount] = useState<string>('');
   const [paymentMode, setPaymentMode] = useState<string>('UPI');
   const [transactionReference, setTransactionReference] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  
+
   // Proof Upload States
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
@@ -153,7 +153,7 @@ export function CustomerDrawer({
             setIsArrived(true);
             setArrivedTime(parsed.timeString || 'Earlier Today');
           }
-        } catch (_) {}
+        } catch (_) { }
       }
 
       if (!alreadyArrived) {
@@ -182,7 +182,7 @@ export function CustomerDrawer({
     setIsConfirmingArrival(true);
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
+
     try {
       localStorage.setItem(`arrived_case_${customer.id}`, JSON.stringify({
         customerId: customer.id,
@@ -190,7 +190,7 @@ export function CustomerDrawer({
         timestamp: now.getTime(),
         timeString: timeStr
       }));
-    } catch (_) {}
+    } catch (_) { }
 
     api.visits.recordVisit({
       customerId: customer.id,
@@ -199,7 +199,7 @@ export function CustomerDrawer({
       visitType: 'Field Arrival',
       outcome: 'Arrived at Location',
       notes: `Agent confirmed arrival at customer premises at ${timeStr}`
-    }).catch(() => {});
+    }).catch(() => { });
 
     setIsArrived(true);
     setArrivedTime(timeStr);
@@ -417,8 +417,8 @@ export function CustomerDrawer({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent 
-        side="right" 
+      <SheetContent
+        side="right"
         className="w-full sm:max-w-md md:max-w-lg p-0 flex flex-col h-full bg-background border-l shadow-2xl overflow-hidden"
       >
         {/* Drawer Header */}
@@ -505,7 +505,7 @@ export function CustomerDrawer({
                 <div className="flex items-center justify-between text-xs pt-2 border-t border-border/50 text-muted-foreground">
                   <span className="flex items-center gap-1.5 font-medium text-foreground">
                     <Compass className="w-4 h-4 text-blue-600 animate-pulse" />
-                    {distanceInfo.distanceKm < 1 
+                    {distanceInfo.distanceKm < 1
                       ? `${Math.round(distanceInfo.distanceKm * 1000)} meters away`
                       : `${distanceInfo.distanceKm.toFixed(1)} km away`}
                   </span>
@@ -642,561 +642,560 @@ export function CustomerDrawer({
 
             {/* Scrollable Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* TAB 1: COLLECT PAYMENT & PROOF */}
-          {activeTab === 'collect' && (
-            <div className="space-y-4">
-              {/* Financial Quick Glance */}
-              <div className="grid grid-cols-2 gap-2 bg-primary/5 p-3 rounded-lg border border-primary/20">
-                <div>
-                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Total Due</span>
-                  <p className="text-xl font-bold text-primary">₹{customer.amountDue.toLocaleString()}</p>
-                </div>
-                <div>
-                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">EMI Amount</span>
-                  <p className="text-lg font-semibold text-foreground">₹{customer.emiAmount.toLocaleString()}</p>
-                </div>
-                <div className="col-span-2 pt-1 border-t border-primary/10 flex justify-between items-center text-xs text-muted-foreground">
-                  <span>Due Date: <strong className="text-foreground">{customer.dueDate}</strong></span>
-                  {customer.daysPastDue > 0 && (
-                    <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 text-[10px]">
-                      {customer.daysPastDue} DPD
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* SUCCESS CONFIRMATION STATE */}
-              {paymentResult ? (
-                <Card className="border-green-200 bg-green-50/50 p-4 space-y-3">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                    <h4 className="font-semibold text-sm">Payment Recorded Successfully!</h4>
-                  </div>
-                  <div className="bg-white p-3 rounded border text-xs space-y-1.5 font-mono">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Receipt No:</span>
-                      <strong className="text-foreground">{paymentResult.receiptNumber}</strong>
+              {/* TAB 1: COLLECT PAYMENT & PROOF */}
+              {activeTab === 'collect' && (
+                <div className="space-y-4">
+                  {/* Financial Quick Glance */}
+                  <div className="grid grid-cols-2 gap-2 bg-primary/5 p-3 rounded-lg border border-primary/20">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Total Due</span>
+                      <p className="text-xl font-bold text-primary">₹{customer.amountDue.toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Amount:</span>
-                      <strong className="text-green-700 font-sans text-sm">₹{paymentResult.amount.toLocaleString()}</strong>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">EMI Amount</span>
+                      <p className="text-lg font-semibold text-foreground">₹{customer.emiAmount.toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Mode:</span>
-                      <span className="text-foreground uppercase">{paymentResult.mode}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date:</span>
-                      <span className="text-foreground">{paymentResult.date}</span>
-                    </div>
-                  </div>
-
-                  {paymentResult.proofUrl && (
-                    <div className="text-xs pt-1">
-                      <span className="text-muted-foreground block mb-1">Attached Proof:</span>
-                      <a 
-                        href={`http://localhost:5001${paymentResult.proofUrl}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> View Uploaded Proof File
-                      </a>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => setPaymentResult(null)}
-                    >
-                      Collect Another
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={onClose}
-                    >
-                      Done
-                    </Button>
-                  </div>
-                </Card>
-              ) : (
-                /* PAYMENT FORM */
-                <form onSubmit={handleSubmitPayment} className="space-y-4">
-                  {/* Amount Input & Presets */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Payment Amount (₹) *</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="pl-8 text-lg font-bold"
-                        required
-                        min="1"
-                      />
-                    </div>
-                    {/* Quick Amount Buttons */}
-                    <div className="flex gap-1.5 flex-wrap pt-1">
-                      {customer.amountDue > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setAmount(String(customer.amountDue))}
-                          className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
-                        >
-                          Full Due (₹{customer.amountDue.toLocaleString()})
-                        </button>
+                    <div className="col-span-2 pt-1 border-t border-primary/10 flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Due Date: <strong className="text-foreground">{customer.dueDate}</strong></span>
+                      {customer.daysPastDue > 0 && (
+                        <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 text-[10px]">
+                          {customer.daysPastDue} DPD
+                        </Badge>
                       )}
-                      {customer.emiAmount > 0 && customer.emiAmount !== customer.amountDue && (
-                        <button
-                          type="button"
-                          onClick={() => setAmount(String(customer.emiAmount))}
-                          className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
-                        >
-                          1 EMI (₹{customer.emiAmount.toLocaleString()})
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setAmount('5000')}
-                        className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
-                      >
-                        ₹5,000
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAmount('2000')}
-                        className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
-                      >
-                        ₹2,000
-                      </button>
                     </div>
                   </div>
 
-                  {/* Payment Mode Selector */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Mode of Payment *</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {PAYMENT_MODES.map((mode) => {
-                        const isSelected = paymentMode === mode.id;
-                        return (
-                          <div
-                            key={mode.id}
-                            onClick={() => setPaymentMode(mode.id)}
-                            className={`cursor-pointer p-2.5 rounded-lg border flex flex-col gap-1 transition-all ${
-                              isSelected 
-                                ? 'border-primary bg-primary/10 text-primary font-medium ring-1 ring-primary' 
-                                : 'border-border bg-card hover:bg-muted/50 text-foreground'
-                            }`}
+                  {/* SUCCESS CONFIRMATION STATE */}
+                  {paymentResult ? (
+                    <Card className="border-green-200 bg-green-50/50 p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-green-700">
+                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                        <h4 className="font-semibold text-sm">Payment Recorded Successfully!</h4>
+                      </div>
+                      <div className="bg-white p-3 rounded border text-xs space-y-1.5 font-mono">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Receipt No:</span>
+                          <strong className="text-foreground">{paymentResult.receiptNumber}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Amount:</span>
+                          <strong className="text-green-700 font-sans text-sm">₹{paymentResult.amount.toLocaleString()}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Mode:</span>
+                          <span className="text-foreground uppercase">{paymentResult.mode}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Date:</span>
+                          <span className="text-foreground">{paymentResult.date}</span>
+                        </div>
+                      </div>
+
+                      {paymentResult.proofUrl && (
+                        <div className="text-xs pt-1">
+                          <span className="text-muted-foreground block mb-1">Attached Proof:</span>
+                          <a
+                            href={`http://localhost:5001${paymentResult.proofUrl}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1.5">
-                                <mode.icon className={`w-4 h-4 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                                <span className="text-xs font-semibold">{mode.label}</span>
-                              </div>
-                              {isSelected && <Check className="w-3.5 h-3.5 text-primary" />}
-                            </div>
-                            <span className="text-[10px] text-muted-foreground truncate">{mode.desc}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Transaction Reference / UTR Number */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">
-                      {paymentMode === 'UPI' ? 'UPI Transaction / UTR No *' :
-                       paymentMode === 'CHEQUE' ? 'Cheque No & Bank *' :
-                       paymentMode === 'BANK_TRANSFER' ? 'IMPS / NEFT Reference No *' :
-                       'Receipt / Cash Memo Ref (Optional)'}
-                    </Label>
-                    <Input
-                      placeholder={
-                        paymentMode === 'UPI' ? 'e.g. 412356789012 (12-digit UTR)' :
-                        paymentMode === 'CHEQUE' ? 'e.g. CHQ-982341 (HDFC Bank)' :
-                        paymentMode === 'BANK_TRANSFER' ? 'e.g. CMS20261022099' :
-                        'e.g. CASH-MEMO-001'
-                      }
-                      value={transactionReference}
-                      onChange={(e) => setTransactionReference(e.target.value)}
-                      required={paymentMode !== 'CASH'}
-                      className="text-sm font-mono"
-                    />
-                  </div>
-
-                  {/* PROOF OF PAYMENT UPLOAD */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-xs font-semibold flex items-center gap-1">
-                        <ImageIcon className="w-3.5 h-3.5 text-primary" />
-                        Proof of Payment (Screenshot / Receipt)
-                      </Label>
-                      {proofPreview && (
-                        <button
-                          type="button"
-                          onClick={handleRemoveProof}
-                          className="text-[11px] text-destructive hover:underline flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" /> Remove
-                        </button>
+                            <Eye className="w-3.5 h-3.5" /> View Uploaded Proof File
+                          </a>
+                        </div>
                       )}
-                    </div>
 
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*,application/pdf"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="drawer-proof-file"
-                    />
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setPaymentResult(null)}
+                        >
+                          Collect Another
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={onClose}
+                        >
+                          Done
+                        </Button>
+                      </div>
+                    </Card>
+                  ) : (
+                    /* PAYMENT FORM */
+                    <form onSubmit={handleSubmitPayment} className="space-y-4">
+                      {/* Amount Input & Presets */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">Payment Amount (₹) *</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="pl-8 text-lg font-bold"
+                            required
+                            min="1"
+                          />
+                        </div>
+                        {/* Quick Amount Buttons */}
+                        <div className="flex gap-1.5 flex-wrap pt-1">
+                          {customer.amountDue > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setAmount(String(customer.amountDue))}
+                              className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
+                            >
+                              Full Due (₹{customer.amountDue.toLocaleString()})
+                            </button>
+                          )}
+                          {customer.emiAmount > 0 && customer.emiAmount !== customer.amountDue && (
+                            <button
+                              type="button"
+                              onClick={() => setAmount(String(customer.emiAmount))}
+                              className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
+                            >
+                              1 EMI (₹{customer.emiAmount.toLocaleString()})
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setAmount('5000')}
+                            className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
+                          >
+                            ₹5,000
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAmount('2000')}
+                            className="text-[11px] px-2 py-0.5 rounded bg-secondary hover:bg-secondary/80 border text-secondary-foreground"
+                          >
+                            ₹2,000
+                          </button>
+                        </div>
+                      </div>
 
-                    {proofPreview ? (
-                      /* Preview Box */
-                      <div className="relative border rounded-lg overflow-hidden bg-muted/20 p-2 flex items-center gap-3">
-                        <img 
-                          src={proofPreview} 
-                          alt="Payment Proof Preview" 
-                          className="w-16 h-16 object-cover rounded border bg-white flex-shrink-0"
+                      {/* Payment Mode Selector */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">Mode of Payment *</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {PAYMENT_MODES.map((mode) => {
+                            const isSelected = paymentMode === mode.id;
+                            return (
+                              <div
+                                key={mode.id}
+                                onClick={() => setPaymentMode(mode.id)}
+                                className={`cursor-pointer p-2.5 rounded-lg border flex flex-col gap-1 transition-all ${isSelected
+                                    ? 'border-primary bg-primary/10 text-primary font-medium ring-1 ring-primary'
+                                    : 'border-border bg-card hover:bg-muted/50 text-foreground'
+                                  }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <mode.icon className={`w-4 h-4 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    <span className="text-xs font-semibold">{mode.label}</span>
+                                  </div>
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-primary" />}
+                                </div>
+                                <span className="text-[10px] text-muted-foreground truncate">{mode.desc}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Transaction Reference / UTR Number */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">
+                          {paymentMode === 'UPI' ? 'UPI Transaction / UTR No *' :
+                            paymentMode === 'CHEQUE' ? 'Cheque No & Bank *' :
+                              paymentMode === 'BANK_TRANSFER' ? 'IMPS / NEFT Reference No *' :
+                                'Receipt / Cash Memo Ref (Optional)'}
+                        </Label>
+                        <Input
+                          placeholder={
+                            paymentMode === 'UPI' ? 'e.g. 412356789012 (12-digit UTR)' :
+                              paymentMode === 'CHEQUE' ? 'e.g. CHQ-982341 (HDFC Bank)' :
+                                paymentMode === 'BANK_TRANSFER' ? 'e.g. CMS20261022099' :
+                                  'e.g. CASH-MEMO-001'
+                          }
+                          value={transactionReference}
+                          onChange={(e) => setTransactionReference(e.target.value)}
+                          required={paymentMode !== 'CASH'}
+                          className="text-sm font-mono"
                         />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{proofFile?.name || 'Payment_Proof.png'}</p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {proofFile?.size ? `${(proofFile.size / 1024).toFixed(1)} KB` : 'Image'}
-                          </p>
-                          {isUploadingProof ? (
-                            <span className="text-[10px] text-primary flex items-center gap-1 mt-1">
-                              <Loader2 className="w-3 h-3 animate-spin" /> Uploading proof to server...
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-green-600 flex items-center gap-1 mt-1">
-                              <CheckCircle2 className="w-3 h-3" /> Ready to submit
-                            </span>
+                      </div>
+
+                      {/* PROOF OF PAYMENT UPLOAD */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs font-semibold flex items-center gap-1">
+                            <ImageIcon className="w-3.5 h-3.5 text-primary" />
+                            Proof of Payment (Screenshot / Receipt)
+                          </Label>
+                          {proofPreview && (
+                            <button
+                              type="button"
+                              onClick={handleRemoveProof}
+                              className="text-[11px] text-destructive hover:underline flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" /> Remove
+                            </button>
                           )}
                         </div>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={handleRemoveProof}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      /* Upload Trigger Area */
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all flex flex-col items-center justify-center gap-1.5"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                          <Upload className="w-4 h-4" />
-                        </div>
-                        <p className="text-xs font-medium">Click or tap to upload payment screenshot / receipt</p>
-                        <p className="text-[10px] text-muted-foreground">Supports JPG, PNG, WEBP, PDF (Max 10MB)</p>
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Agent Collection Notes */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Collection Remarks / Notes</Label>
-                    <Textarea
-                      placeholder="e.g. Payment collected in person at residence. Borrower requested next visit on 15th."
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={2}
-                      className="text-xs"
-                    />
-                  </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="drawer-proof-file"
+                        />
 
-                  {/* Submit Action Button */}
-                  <Button
-                    type="submit"
-                    className="w-full font-semibold h-11 text-sm shadow-md"
-                    disabled={isSubmitting || isUploadingProof}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Recording Payment...
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4 mr-1.5" />
-                        Record & Generate Receipt (₹{amount ? parseFloat(amount || '0').toLocaleString() : '0'})
-                      </>
-                    )}
-                  </Button>
-                </form>
-              )}
-            </div>
-          )}
-
-          {/* TAB 2: BORROWER FULL DETAILS */}
-          {activeTab === 'details' && (
-            <div className="space-y-3 text-xs">
-              <Card className="p-3 space-y-2">
-                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Contact & Address</h4>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Mobile Phone:</span>
-                    <a href={`tel:${customer.phone}`} className="font-semibold text-primary flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {customer.phone}
-                    </a>
-                  </div>
-                  {customer.email && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="font-medium">{customer.email}</span>
-                    </div>
-                  )}
-                  <div className="flex items-start justify-between pt-1">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> Address:
-                    </span>
-                    <span className="font-medium text-right max-w-[65%]">{customer.address}</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-3 space-y-2">
-                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Loan Specifications</h4>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">Loan Amount:</span>
-                    <p className="font-bold">₹{customer.loanAmount.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Principal Balance:</span>
-                    <p className="font-bold">₹{customer.principalBalance.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Interest Rate:</span>
-                    <p className="font-medium">{customer.interestRate}% p.a.</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Tenure:</span>
-                    <p className="font-medium">{customer.remainingTenure} / {customer.loanTenure} Mos</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Monthly Income:</span>
-                    <p className="font-medium">₹{(customer.monthlyIncome || 35000).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Occupation:</span>
-                    <p className="font-medium">{customer.occupation || 'Salaried'}</p>
-                  </div>
-                </div>
-              </Card>
-
-              {((customer as any).references?.length > 0 || customer.coApplicantName) && (
-                <Card className="p-3 space-y-2">
-                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-                    Customer References
-                  </h4>
-                  {(customer as any).references?.length > 0 ? (
-                    (customer as any).references.map((ref: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between py-1 border-b last:border-b-0 text-xs">
-                        <div>
-                          <span className="font-medium">{ref.name}</span>
-                          {ref.relation && <span className="text-[10px] text-muted-foreground ml-1">({ref.relation})</span>}
-                        </div>
-                        {ref.phone && (
-                          <a href={`tel:${ref.phone}`} className="text-primary font-mono font-medium">
-                            {ref.phone}
-                          </a>
+                        {proofPreview ? (
+                          /* Preview Box */
+                          <div className="relative border rounded-lg overflow-hidden bg-muted/20 p-2 flex items-center gap-3">
+                            <img
+                              src={proofPreview}
+                              alt="Payment Proof Preview"
+                              className="w-16 h-16 object-cover rounded border bg-white flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate">{proofFile?.name || 'Payment_Proof.png'}</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {proofFile?.size ? `${(proofFile.size / 1024).toFixed(1)} KB` : 'Image'}
+                              </p>
+                              {isUploadingProof ? (
+                                <span className="text-[10px] text-primary flex items-center gap-1 mt-1">
+                                  <Loader2 className="w-3 h-3 animate-spin" /> Uploading proof to server...
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-green-600 flex items-center gap-1 mt-1">
+                                  <CheckCircle2 className="w-3 h-3" /> Ready to submit
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={handleRemoveProof}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          /* Upload Trigger Area */
+                          <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all flex flex-col items-center justify-center gap-1.5"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                              <Upload className="w-4 h-4" />
+                            </div>
+                            <p className="text-xs font-medium">Click or tap to upload payment screenshot / receipt</p>
+                            <p className="text-[10px] text-muted-foreground">Supports JPG, PNG, WEBP, PDF (Max 10MB)</p>
+                          </div>
                         )}
                       </div>
-                    ))
-                  ) : (
-                    <>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Name:</span>
-                        <span className="font-medium">{customer.coApplicantName}</span>
+
+                      {/* Agent Collection Notes */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">Collection Remarks / Notes</Label>
+                        <Textarea
+                          placeholder="e.g. Payment collected in person at residence. Borrower requested next visit on 15th."
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          rows={2}
+                          className="text-xs"
+                        />
                       </div>
-                      {customer.coApplicantPhone && (
-                        <div className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">Phone:</span>
-                          <a href={`tel:${customer.coApplicantPhone}`} className="text-primary font-medium font-mono">
-                            {customer.coApplicantPhone}
-                          </a>
-                        </div>
-                      )}
-                    </>
+
+                      {/* Submit Action Button */}
+                      <Button
+                        type="submit"
+                        className="w-full font-semibold h-11 text-sm shadow-md"
+                        disabled={isSubmitting || isUploadingProof}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Recording Payment...
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-4 h-4 mr-1.5" />
+                            Record & Generate Receipt (₹{amount ? parseFloat(amount || '0').toLocaleString() : '0'})
+                          </>
+                        )}
+                      </Button>
+                    </form>
                   )}
-                </Card>
+                </div>
               )}
 
-              <Button
-                variant="outline"
-                className="w-full text-xs"
-                onClick={() => {
-                  onClose();
-                  if (onNavigate) {
-                    onNavigate('customer', customer);
-                  }
-                }}
-              >
-                Open Full Customer Page <ExternalLink className="w-3 h-3 ml-1" />
-              </Button>
-            </div>
-          )}
+              {/* TAB 2: BORROWER FULL DETAILS */}
+              {activeTab === 'details' && (
+                <div className="space-y-3 text-xs">
+                  <Card className="p-3 space-y-2">
+                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Contact & Address</h4>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Mobile Phone:</span>
+                        <a href={`tel:${customer.phone}`} className="font-semibold text-primary flex items-center gap-1">
+                          <Phone className="w-3 h-3" /> {customer.phone}
+                        </a>
+                      </div>
+                      {customer.email && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Email:</span>
+                          <span className="font-medium">{customer.email}</span>
+                        </div>
+                      )}
+                      <div className="flex items-start justify-between pt-1">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> Address:
+                        </span>
+                        <span className="font-medium text-right max-w-[65%]">{customer.address}</span>
+                      </div>
+                    </div>
+                  </Card>
 
-          {/* TAB 3: CUSTOMER DOCUMENTS & ZERO-TRUST KYC */}
-          {activeTab === 'docs' && (
-            <div className="space-y-3">
-              {isLoadingDocs ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  <span>Fetching verified documents from cPanel...</span>
-                </div>
-              ) : customerDocs.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground text-xs space-y-2 border-2 border-dashed rounded-lg p-6">
-                  <FileText className="w-8 h-8 mx-auto text-muted-foreground/60" />
-                  <p className="font-semibold text-sm">No Customer Documents Found</p>
-                  <p className="text-[11px]">No verification documents or KYC files are recorded for this borrower.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-                    <span>Verified Documents ({customerDocs.length})</span>
-                    <span className="text-emerald-600 font-medium flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Zero-Trust Verified
-                    </span>
-                  </div>
+                  <Card className="p-3 space-y-2">
+                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Loan Specifications</h4>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Loan Amount:</span>
+                        <p className="font-bold">₹{customer.loanAmount.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Principal Balance:</span>
+                        <p className="font-bold">₹{customer.principalBalance.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Interest Rate:</span>
+                        <p className="font-medium">{customer.interestRate}% p.a.</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Tenure:</span>
+                        <p className="font-medium">{customer.remainingTenure} / {customer.loanTenure} Mos</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Monthly Income:</span>
+                        <p className="font-medium">₹{(customer.monthlyIncome || 35000).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Occupation:</span>
+                        <p className="font-medium">{customer.occupation || 'Salaried'}</p>
+                      </div>
+                    </div>
+                  </Card>
 
-                  {customerDocs.map((doc) => (
-                    <Card 
-                      key={doc.id}
-                      onClick={() => setSelectedDocForPreview(doc)}
-                      className="p-3 hover:border-primary/50 cursor-pointer transition-all hover:shadow-sm group border"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
-                            {doc.isPdf ? (
-                              <FileText className="w-4 h-4 text-rose-500" />
-                            ) : doc.isImage ? (
-                              <ImageIcon className="w-4 h-4 text-blue-500" />
-                            ) : (
-                              <FileText className="w-4 h-4 text-amber-500" />
+                  {((customer as any).references?.length > 0 || customer.coApplicantName) && (
+                    <Card className="p-3 space-y-2">
+                      <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                        Customer References
+                      </h4>
+                      {(customer as any).references?.length > 0 ? (
+                        (customer as any).references.map((ref: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between py-1 border-b last:border-b-0 text-xs">
+                            <div>
+                              <span className="font-medium">{ref.name}</span>
+                              {ref.relation && <span className="text-[10px] text-muted-foreground ml-1">({ref.relation})</span>}
+                            </div>
+                            {ref.phone && (
+                              <a href={`tel:${ref.phone}`} className="text-primary font-mono font-medium">
+                                {ref.phone}
+                              </a>
                             )}
                           </div>
-                          <div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <h4 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors">
-                                {doc.name}
-                              </h4>
-                              {doc.filePassword && (
-                                <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-700 border-amber-200">
-                                  🔐 Password
-                                </Badge>
-                              )}
-                              <Badge variant="outline" className="text-[9px] font-mono">
-                                {doc.fileFormat || 'FILE'}
-                              </Badge>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground font-mono mt-0.5 truncate max-w-[200px]">
-                              {doc.fileName}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                              Uploaded: {doc.uploadedAt} {doc.uploadedTime ? `• ${doc.uploadedTime}` : ''}
-                            </p>
+                        ))
+                      ) : (
+                        <>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Name:</span>
+                            <span className="font-medium">{customer.coApplicantName}</span>
                           </div>
-                        </div>
-
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-8 px-2 text-xs text-primary group-hover:bg-primary/10 gap-1"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </Button>
-                      </div>
-
-                      {doc.filePassword && (
-                        <div className="mt-2 pt-2 border-t text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between font-mono bg-amber-50/50 dark:bg-amber-950/30 p-1.5 rounded">
-                          <span>Password: <strong>{doc.filePassword}</strong></span>
-                          <span className="text-[10px] text-muted-foreground">Click card to copy</span>
-                        </div>
+                          {customer.coApplicantPhone && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Phone:</span>
+                              <a href={`tel:${customer.coApplicantPhone}`} className="text-primary font-medium font-mono">
+                                {customer.coApplicantPhone}
+                              </a>
+                            </div>
+                          )}
+                        </>
                       )}
                     </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                  )}
 
-          {/* TAB 4: PAYMENT HISTORY */}
-          {activeTab === 'history' && (
-            <div className="space-y-3">
-              {isLoadingHistory ? (
-                <div className="py-8 flex justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                </div>
-              ) : paymentHistory.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-xs space-y-2">
-                  <Receipt className="w-8 h-8 mx-auto text-muted-foreground/60" />
-                  <p>No past payments recorded for this borrower.</p>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="text-xs mt-1"
-                    onClick={() => setActiveTab('collect')}
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs"
+                    onClick={() => {
+                      onClose();
+                      if (onNavigate) {
+                        onNavigate('customer', customer);
+                      }
+                    }}
                   >
-                    Collect Payment Now
+                    Open Full Customer Page <ExternalLink className="w-3 h-3 ml-1" />
                   </Button>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {paymentHistory.map((p, idx) => (
-                    <Card key={p.id || idx} className="p-3 text-xs space-y-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="font-bold text-sm text-green-700">₹{parseFloat(p.amount).toLocaleString()}</span>
-                          <span className="text-muted-foreground ml-2 uppercase text-[10px] font-mono">({p.payment_mode || p.mode || 'CASH'})</span>
-                        </div>
-                        <Badge variant="outline" className="text-[10px]">
-                          {p.status?.toUpperCase() || 'SUCCESS'}
-                        </Badge>
+              )}
+
+              {/* TAB 3: CUSTOMER DOCUMENTS & ZERO-TRUST KYC */}
+              {activeTab === 'docs' && (
+                <div className="space-y-3">
+                  {isLoadingDocs ? (
+                    <div className="py-12 flex flex-col items-center justify-center gap-2 text-muted-foreground text-xs">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span>Fetching verified documents from cPanel...</span>
+                    </div>
+                  ) : customerDocs.length === 0 ? (
+                    <div className="text-center py-10 text-muted-foreground text-xs space-y-2 border-2 border-dashed rounded-lg p-6">
+                      <FileText className="w-8 h-8 mx-auto text-muted-foreground/60" />
+                      <p className="font-semibold text-sm">No Customer Documents Found</p>
+                      <p className="text-[11px]">No verification documents or KYC files are recorded for this borrower.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+                        <span>Verified Documents ({customerDocs.length})</span>
+                        <span className="text-emerald-600 font-medium flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5" /> Zero-Trust Verified
+                        </span>
                       </div>
-                      <div className="text-muted-foreground text-[11px] flex justify-between">
-                        <span>Receipt: <strong className="font-mono text-foreground">{p.receipt_number || p.receiptNumber || 'N/A'}</strong></span>
-                        <span>{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : 'Recent'}</span>
-                      </div>
-                      {p.transaction_reference && (
-                        <p className="text-[10px] font-mono text-muted-foreground truncate">
-                          Ref: {p.transaction_reference}
-                        </p>
-                      )}
-                      {p.receipt_url && (
-                        <a 
-                          href={p.receipt_url.startsWith('http') ? p.receipt_url : `http://localhost:5001${p.receipt_url}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-primary hover:underline text-[11px] pt-1"
+
+                      {customerDocs.map((doc) => (
+                        <Card
+                          key={doc.id}
+                          onClick={() => setSelectedDocForPreview(doc)}
+                          className="p-3 hover:border-primary/50 cursor-pointer transition-all hover:shadow-sm group border"
                         >
-                          <Eye className="w-3 h-3" /> View Uploaded Proof Receipt
-                        </a>
-                      )}
-                    </Card>
-                  ))}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-2.5">
+                              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
+                                {doc.isPdf ? (
+                                  <FileText className="w-4 h-4 text-rose-500" />
+                                ) : doc.isImage ? (
+                                  <ImageIcon className="w-4 h-4 text-blue-500" />
+                                ) : (
+                                  <FileText className="w-4 h-4 text-amber-500" />
+                                )}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <h4 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors">
+                                    {doc.name}
+                                  </h4>
+                                  {doc.filePassword && (
+                                    <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-700 border-amber-200">
+                                      🔐 Password
+                                    </Badge>
+                                  )}
+                                  <Badge variant="outline" className="text-[9px] font-mono">
+                                    {doc.fileFormat || 'FILE'}
+                                  </Badge>
+                                </div>
+                                <p className="text-[11px] text-muted-foreground font-mono mt-0.5 truncate max-w-[200px]">
+                                  {doc.fileName}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                  Uploaded: {doc.uploadedAt} {doc.uploadedTime ? `• ${doc.uploadedTime}` : ''}
+                                </p>
+                              </div>
+                            </div>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 px-2 text-xs text-primary group-hover:bg-primary/10 gap-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>View</span>
+                            </Button>
+                          </div>
+
+                          {doc.filePassword && (
+                            <div className="mt-2 pt-2 border-t text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between font-mono bg-amber-50/50 dark:bg-amber-950/30 p-1.5 rounded">
+                              <span>Password: <strong>{doc.filePassword}</strong></span>
+                              <span className="text-[10px] text-muted-foreground">Click card to copy</span>
+                            </div>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 4: PAYMENT HISTORY */}
+              {activeTab === 'history' && (
+                <div className="space-y-3">
+                  {isLoadingHistory ? (
+                    <div className="py-8 flex justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    </div>
+                  ) : paymentHistory.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-xs space-y-2">
+                      <Receipt className="w-8 h-8 mx-auto text-muted-foreground/60" />
+                      <p>No past payments recorded for this borrower.</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs mt-1"
+                        onClick={() => setActiveTab('collect')}
+                      >
+                        Collect Payment Now
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {paymentHistory.map((p, idx) => (
+                        <Card key={p.id || idx} className="p-3 text-xs space-y-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="font-bold text-sm text-green-700">₹{parseFloat(p.amount).toLocaleString()}</span>
+                              <span className="text-muted-foreground ml-2 uppercase text-[10px] font-mono">({p.payment_mode || p.mode || 'CASH'})</span>
+                            </div>
+                            <Badge variant="outline" className="text-[10px]">
+                              {p.status?.toUpperCase() || 'SUCCESS'}
+                            </Badge>
+                          </div>
+                          <div className="text-muted-foreground text-[11px] flex justify-between">
+                            <span>Receipt: <strong className="font-mono text-foreground">{p.receipt_number || p.receiptNumber || 'N/A'}</strong></span>
+                            <span>{p.payment_date ? new Date(p.payment_date).toLocaleDateString() : 'Recent'}</span>
+                          </div>
+                          {p.transaction_reference && (
+                            <p className="text-[10px] font-mono text-muted-foreground truncate">
+                              Ref: {p.transaction_reference}
+                            </p>
+                          )}
+                          {p.receipt_url && (
+                            <a
+                              href={p.receipt_url.startsWith('http') ? p.receipt_url : `http://localhost:5001${p.receipt_url}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-primary hover:underline text-[11px] pt-1"
+                            >
+                              <Eye className="w-3 h-3" /> View Uploaded Proof Receipt
+                            </a>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </>
-    )}
+          </>
+        )}
 
         {/* Drawer Footer */}
         <div className="p-3 border-t bg-muted/20 flex justify-between items-center text-xs text-muted-foreground">

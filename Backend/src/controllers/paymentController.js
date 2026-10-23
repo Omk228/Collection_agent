@@ -164,43 +164,42 @@ async function recordPayment(req, res, next) {
       console.warn('[Sync Warning] customer_repayments insert:', err.message);
     }
 
-    // 5. UPDATE: Update amount_due and last_payment on collection_customers
+    // 5. UPDATE: In collection_customers, mark status as 'completed' for agent panel tracking
+    // Do NOT close the loan; closing/settlement happens strictly from Accounts/Collection panel.
     await query(`
       UPDATE collection_customers 
       SET amount_due = GREATEST(0, amount_due - ?),
           last_payment = CURRENT_DATE(),
-          status = CASE WHEN (amount_due - ?) <= 0 THEN 'paid' ELSE status END,
+          status = 'completed',
           updated_at = NOW()
       WHERE id = ? OR loan_id = ?
-    `, [parsedAmount, parsedAmount, customerId || 0, resolvedLoanId || '']);
+    `, [parsedAmount, customerId || 0, resolvedLoanId || '']);
 
-    // 6. UPDATE: In loan_accounts, record payment and reduce outstanding balance
+    // 6. UPDATE: In loan_accounts, record payment numbers but DO NOT change loan status to 'Settled'/'Closed'
     if (resolvedLoanId) {
       try {
         await query(`
           UPDATE loan_accounts
           SET total_paid = total_paid + ?,
               outstanding = GREATEST(0, outstanding - ?),
-              status = CASE WHEN (outstanding - ?) <= 0 THEN 'Settled' ELSE status END,
               updated_at = NOW()
           WHERE id = ? OR application_id = ?
-        `, [parsedAmount, parsedAmount, parsedAmount, resolvedLoanId, resolvedLoanId]);
+        `, [parsedAmount, parsedAmount, resolvedLoanId, resolvedLoanId]);
       } catch (err) {
         console.warn('[Sync Warning] loan_accounts update:', err.message);
       }
     }
 
-    // 5. CENTRAL UPDATE: Update collections table if case exists
+    // 7. CENTRAL UPDATE: In collections table, update received amount without changing status to 'CLOSED'
     try {
       await query(`
         UPDATE collections
         SET amount_received = amount_received + ?,
             balance_due = GREATEST(0, balance_due - ?),
             last_payment_date = NOW(),
-            payment_method = ?,
-            status = CASE WHEN (balance_due - ?) <= 0 THEN 'CLOSED' ELSE status END
+            payment_method = ?
         WHERE invoice_no = ? OR collection_id = ? OR customer_name = ?
-      `, [parsedAmount, parsedAmount, (paymentMode || 'cash').toUpperCase(), parsedAmount, resolvedLoanId || '', resolvedLoanId || '', resolvedCustomerName || '']);
+      `, [parsedAmount, parsedAmount, (paymentMode || 'cash').toUpperCase(), resolvedLoanId || '', resolvedLoanId || '', resolvedCustomerName || '']);
     } catch (err) {
       console.warn('[Sync Warning] collections table update:', err.message);
     }

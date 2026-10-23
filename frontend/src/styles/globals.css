@@ -246,3 +246,21 @@ html {
 .glow-brand-sm {
   box-shadow: 0 2px 10px -1px rgba(209, 68, 147, 0.25);
 }
+
+/* PWA & Mobile Standalone Enhancements */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* Mobile Touch & Standalone Experience */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure bottom navigation bar respects mobile safe area (e.g. iOS home indicator) */
+.fixed.bottom-0 {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem)) !important;
+}
