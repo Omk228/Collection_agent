@@ -4,7 +4,7 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
+  RewriteBase /ca_agent/
 
   # 1. Force HTTPS (Uncomment if your cPanel domain has SSL active)
   # RewriteCond %{HTTPS} off
@@ -21,6 +21,11 @@
   # 4. Fallback all SPA routes to index.html (React Router)
   RewriteRule ^ index.html [L]
 </IfModule>
+
+# Prevent direct browser access to sensitive metadata
+<FilesMatch "^\.(env|git)|package\.json$">
+  Require all denied
+</FilesMatch>
 
 # ==============================================================================
 # Proper MIME Types for PWA & Modern Web

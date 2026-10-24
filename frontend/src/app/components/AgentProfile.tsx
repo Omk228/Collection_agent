@@ -105,17 +105,18 @@ export function AgentProfile({ onNavigate, onLogout }: AgentProfileProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 bg-background border-b p-4 z-10">
+      <div className="sticky top-0 bg-background border-b p-3 sm:p-4 z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onNavigate('agent')}
+              className="px-2"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <h1>Agent Profile</h1>
+            <h1 className="text-base sm:text-lg font-semibold">Agent Profile</h1>
           </div>
           <div className="flex gap-2">
             {isEditing ? (
@@ -136,7 +137,7 @@ export function AgentProfile({ onNavigate, onLogout }: AgentProfileProps) {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 pb-28 sm:pb-24">
         {/* Profile Picture and Basic Info */}
         <Card>
           <CardContent className="p-6">

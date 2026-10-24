@@ -311,20 +311,22 @@ export function TaskReminders({ onNavigate }: TaskRemindersProps) {
   const filteredTasks = getFilteredTasks();
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24">
+    <div className="min-h-screen bg-background p-4 pb-28 sm:pb-24">
       {/* Header */}
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate('agent')}
-          className="mr-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="flex-1">Tasks & Reminders</h1>
-        <Button size="sm" onClick={() => setIsCreatingTask(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('agent')}
+            className="h-8 w-8 p-0 shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-lg font-bold truncate">Tasks & Reminders</h1>
+        </div>
+        <Button size="sm" onClick={() => setIsCreatingTask(true)} className="h-8 text-xs shrink-0">
+          <Plus className="h-3.5 w-3.5 mr-1" />
           Add Task
         </Button>
       </div>
@@ -368,11 +370,11 @@ export function TaskReminders({ onNavigate }: TaskRemindersProps) {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="today">Today ({tasks.filter(t => t.dueDate === new Date().toISOString().split('T')[0]).length})</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="completed">Done</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar gap-1 p-1 bg-muted rounded-xl sm:grid sm:grid-cols-4 justify-start">
+          <TabsTrigger value="today" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Today ({tasks.filter(t => t.dueDate === new Date().toISOString().split('T')[0]).length})</TabsTrigger>
+          <TabsTrigger value="overdue" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Overdue</TabsTrigger>
+          <TabsTrigger value="upcoming" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Upcoming</TabsTrigger>
+          <TabsTrigger value="completed" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Done</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-4">

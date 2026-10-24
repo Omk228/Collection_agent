@@ -55,7 +55,7 @@ export default defineConfig(async (env) =>
         replacement,
       })),
     },
-    base: process.env.FIGMA_PUBLIC_URL ? `${process.env.FIGMA_PUBLIC_URL}/` : '/',
+    base: process.env.VITE_BASE_PATH || (process.env.FIGMA_PUBLIC_URL ? `${process.env.FIGMA_PUBLIC_URL}/` : (env.mode === 'production' ? '/ca_agent/' : '/')),
     build: {
       sourcemap: env.mode === 'development' ? 'inline' : false,
       minify: env.mode !== 'development',

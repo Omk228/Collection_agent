@@ -74,15 +74,15 @@ export function Reports() {
   }));
 
   return (
-    <div className="p-4 space-y-6 pb-24">
-      <div className="flex justify-between items-center">
+    <div className="p-4 space-y-5 pb-28 sm:pb-24">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold">Reports & Performance</h1>
+          <h1 className="text-xl font-bold tracking-tight">Reports & Performance</h1>
           <p className="text-xs text-muted-foreground">Real-time database metrics</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-28 sm:w-32 h-8 text-xs bg-card">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -91,43 +91,43 @@ export function Reports() {
               <SelectItem value="quarterly">Quarterly</SelectItem>
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" onClick={loadLiveReports} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <Button size="sm" variant="outline" onClick={loadLiveReports} disabled={loading} className="h-8 w-8 p-0">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between gap-1">
+              <div className="min-w-0">
                 <div className="flex items-center gap-1">
-                  <DollarSign className="w-4 h-4 text-green-600" />
-                  <span className="text-lg font-bold">
+                  <DollarSign className="w-4 h-4 text-green-600 shrink-0" />
+                  <span className="text-base sm:text-lg font-bold font-mono truncate">
                     ₹{totalCollected.toLocaleString()}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">Total Collected</p>
+                <p className="text-xs text-muted-foreground truncate">Total Collected</p>
               </div>
-              <TrendingUp className="w-4 h-4 text-green-600" />
+              <TrendingUp className="w-4 h-4 text-green-600 shrink-0" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-center justify-between gap-1">
+              <div className="min-w-0">
                 <div className="flex items-center gap-1">
-                  <BarChart3 className="w-4 h-4 text-blue-600" />
-                  <span className="text-lg font-bold">{collectionRate}%</span>
+                  <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span className="text-base sm:text-lg font-bold font-mono">{collectionRate}%</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Collection Rate</p>
+                <p className="text-xs text-muted-foreground truncate">Collection Rate</p>
               </div>
-              <Badge variant={collectionRate >= 80 ? 'default' : 'secondary'}>
-                {collectionRate >= 80 ? 'Good' : 'Average'}
+              <Badge variant={collectionRate >= 80 ? 'default' : 'secondary'} className="text-[10px] sm:text-xs shrink-0">
+                {collectionRate >= 80 ? 'Good' : 'Avg'}
               </Badge>
             </div>
           </CardContent>

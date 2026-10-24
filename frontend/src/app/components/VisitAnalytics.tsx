@@ -169,38 +169,39 @@ export function VisitAnalytics({ onNavigate }: VisitAnalyticsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24">
+    <div className="min-h-screen bg-background p-3 sm:p-4 pb-28 sm:pb-24">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
+      <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+        <div className="flex items-center min-w-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('agent')}
-            className="mr-2"
+            className="mr-2 px-2 shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-xl font-bold">Visit Analytics</h1>
+          <h1 className="text-base sm:text-xl font-bold truncate">Visit Analytics</h1>
         </div>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={loadLiveVisitData}
           disabled={loading}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 shrink-0 text-xs sm:text-sm"
         >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
       {/* Period Selector */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-4 sm:mb-6">
         <Button
           variant={selectedPeriod === 'week' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedPeriod('week')}
+          className="text-xs sm:text-sm"
         >
           This Week
         </Button>
@@ -208,64 +209,65 @@ export function VisitAnalytics({ onNavigate }: VisitAnalyticsProps) {
           variant={selectedPeriod === 'month' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedPeriod('month')}
+          className="text-xs sm:text-sm"
         >
           This Month
         </Button>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Total Visits</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Total Visits</span>
             </div>
-            <div className="text-2xl font-bold">{stats.totalVisits}</div>
-            <div className="text-xs text-muted-foreground mt-1">Live from database</div>
+            <div className="text-lg sm:text-2xl font-bold truncate">{stats.totalVisits}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Live from database</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-muted-foreground">Successful</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+              <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Successful</span>
             </div>
-            <div className="text-2xl font-bold text-green-600">{stats.successfulCollections}</div>
-            <div className="text-xs text-muted-foreground mt-1">{stats.successRate}% conversion rate</div>
+            <div className="text-lg sm:text-2xl font-bold text-green-600 truncate">{stats.successfulCollections}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{stats.successRate}% conversion</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-              <span className="text-sm text-muted-foreground">Collected</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Collected</span>
             </div>
-            <div className="text-2xl font-bold">₹{stats.totalAmount.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground mt-1">Field visits</div>
+            <div className="text-lg sm:text-2xl font-bold truncate">₹{stats.totalAmount.toLocaleString()}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Field visits</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="h-4 w-4 text-amber-500" />
-              <span className="text-sm text-muted-foreground">Success Rate</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+              <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500 shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Success Rate</span>
             </div>
-            <div className="text-2xl font-bold text-amber-500">{stats.successRate}%</div>
-            <Progress value={stats.successRate} className="h-2 mt-2" />
+            <div className="text-lg sm:text-2xl font-bold text-amber-500 truncate">{stats.successRate}%</div>
+            <Progress value={stats.successRate} className="h-1.5 sm:h-2 mt-1.5 sm:mt-2" />
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="trends" className="space-y-4">
-        <TabsList className="grid grid-cols-3">
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="visits">Live Logs ({mappedVisits.length})</TabsTrigger>
-          <TabsTrigger value="areas">Territory</TabsTrigger>
+        <TabsList className="w-full flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-3 h-auto p-1">
+          <TabsTrigger value="trends" className="flex-1 text-xs sm:text-sm py-1.5 whitespace-nowrap">Trends</TabsTrigger>
+          <TabsTrigger value="visits" className="flex-1 text-xs sm:text-sm py-1.5 whitespace-nowrap">Live Logs ({mappedVisits.length})</TabsTrigger>
+          <TabsTrigger value="areas" className="flex-1 text-xs sm:text-sm py-1.5 whitespace-nowrap">Territory</TabsTrigger>
         </TabsList>
 
         <TabsContent value="trends" className="space-y-4">

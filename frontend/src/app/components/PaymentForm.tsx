@@ -156,19 +156,19 @@ export function PaymentForm({ customer, onNavigate, onPaymentRecorded }: Payment
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="p-3 sm:p-4 space-y-5 sm:space-y-6 pb-28 sm:pb-24">
         {/* Customer Summary */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-medium">{customer.name}</h3>
-                <p className="text-sm text-muted-foreground">Outstanding Balance</p>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex justify-between items-center gap-2">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm sm:text-base truncate">{customer.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Outstanding Balance</p>
               </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1">
-                  <DollarSign className="w-4 h-4 text-destructive" />
-                  <span className="text-lg font-medium text-destructive">
+              <div className="text-right shrink-0">
+                <div className="flex items-center gap-1 justify-end">
+                  <DollarSign className="w-4 h-4 text-destructive shrink-0" />
+                  <span className="text-base sm:text-lg font-bold text-destructive">
                     ₹{customer.amountDue.toLocaleString()}
                   </span>
                 </div>
@@ -178,13 +178,13 @@ export function PaymentForm({ customer, onNavigate, onPaymentRecorded }: Payment
         </Card>
 
         {/* Payment Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           {/* Payment Amount */}
           <Card>
-            <CardHeader>
-              <CardTitle>Payment Amount</CardTitle>
+            <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-3">
+              <CardTitle className="text-base sm:text-lg">Payment Amount</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount (₹)</Label>
                 <Input
@@ -204,12 +204,11 @@ export function PaymentForm({ customer, onNavigate, onPaymentRecorded }: Payment
                     key={amount.label}
                     type="button"
                     variant="outline"
-                    size="sm"
                     onClick={() => handleAmountChange(amount.value.toString())}
+                    className="h-auto py-2 px-1.5 flex flex-col items-center justify-center min-w-0"
                   >
-                    {amount.label}
-                    <br />
-                    <span className="text-xs">₹{amount.value}</span>
+                    <span className="text-[11px] sm:text-xs font-medium truncate w-full text-center">{amount.label}</span>
+                    <span className="text-[11px] sm:text-xs text-primary font-bold">₹{amount.value.toLocaleString()}</span>
                   </Button>
                 ))}
               </div>

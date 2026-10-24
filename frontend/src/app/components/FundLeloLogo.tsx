@@ -1,4 +1,6 @@
 import React from 'react';
+import fundleloLogo from '../../assets/fundlelo-logo.png';
+import fundleloIcon from '../../assets/fundlelo-icon.png';
 
 interface FundLeloLogoProps {
   className?: string;
@@ -23,8 +25,8 @@ export function FundLeloLogo({
   };
 
   const imageSrc = variant === 'icon' 
-    ? '/fundlelo-icon.png' 
-    : '/fundlelo-logo.png';
+    ? fundleloIcon 
+    : fundleloLogo;
 
   return (
     <div className={`inline-flex flex-col items-center justify-center select-none ${className}`}>

@@ -40,8 +40,8 @@ export function BottomNavigation({ activeTab, onNavigate }: BottomNavigationProp
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-card/85 backdrop-blur-md border-t border-border p-2 z-20 shadow-lg">
-      <div className="flex justify-around items-center max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border px-1 py-1 z-30 shadow-lg mobile-nav-bottom">
+      <div className="flex justify-around items-center max-w-md mx-auto w-full gap-0.5">
         {tabs.map((tab) => {
           const isActive = resolvedTab === tab.id;
           return (
@@ -50,14 +50,16 @@ export function BottomNavigation({ activeTab, onNavigate }: BottomNavigationProp
               variant={isActive ? "default" : "ghost"}
               size="sm"
               onClick={() => handleTabClick(tab)}
-              className={`flex flex-col items-center gap-1 h-auto py-1.5 px-3 rounded-xl transition-all active:scale-95 ${
+              className={`flex-1 min-w-0 max-w-[76px] flex flex-col items-center justify-center gap-1 h-auto py-1.5 px-1 rounded-xl transition-all active:scale-95 whitespace-nowrap ${
                 isActive 
                   ? 'bg-linear-to-r from-fuchsia-600 to-purple-700 text-white shadow-md shadow-purple-600/30 font-bold' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[11px] font-semibold leading-tight">{tab.label}</span>
+              <tab.icon className={`w-4 h-4 shrink-0 ${isActive ? 'stroke-[2.5]' : ''}`} />
+              <span className="text-[10px] sm:text-[11px] font-semibold leading-none truncate w-full text-center">
+                {tab.label}
+              </span>
             </Button>
           );
         })}

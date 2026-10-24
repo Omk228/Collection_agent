@@ -2,9 +2,9 @@
   "name": "Fund Lelo - Collection Agent CRM",
   "short_name": "Fund Lelo",
   "description": "Smart Field Collection CRM & Loan Agent Platform",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait-primary",
@@ -14,25 +14,25 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-192.png",
+      "src": "icons/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-maskable-512.png",
+      "src": "icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -44,10 +44,10 @@
       "name": "Agent Home",
       "short_name": "Home",
       "description": "Collection Agent Home Screen",
-      "url": "/",
+      "url": "./",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -56,10 +56,10 @@
       "name": "Customer Directory",
       "short_name": "Customers",
       "description": "View Assigned Customer Loans",
-      "url": "/customers",
+      "url": "./customers",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -68,10 +68,10 @@
       "name": "Route Map",
       "short_name": "Map",
       "description": "Live Navigation & Customer Geocodes",
-      "url": "/live-location",
+      "url": "./live-location",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "icons/icon-192.png",
           "sizes": "192x192"
         }
       ]

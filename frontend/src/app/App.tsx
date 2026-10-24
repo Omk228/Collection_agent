@@ -611,7 +611,7 @@ function AppRoutes() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-28 sm:pb-24">
         <Routes>
           {/* Public Route */}
           <Route 
@@ -772,8 +772,9 @@ function AppRoutes() {
 }
 
 export default function App() {
+  const routerBasename = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') || undefined;
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <AppRoutes />
     </BrowserRouter>
   );

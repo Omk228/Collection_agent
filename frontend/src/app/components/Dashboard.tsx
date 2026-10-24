@@ -91,35 +91,35 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   };
 
   return (
-    <div className="p-4 space-y-6 pb-24">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold">Good morning, {agentName}</h1>
+    <div className="p-4 space-y-5 pb-28 sm:pb-24">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold tracking-tight truncate">Good morning, {agentName}</h1>
           <p className="text-xs text-muted-foreground">Real-time collection overview</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <Badge variant="outline" className="flex items-center gap-1 text-xs">
             <Calendar className="w-3 h-3" />
             Today
           </Badge>
-          <Button size="sm" variant="ghost" onClick={loadDashboard} disabled={loading}>
+          <Button size="sm" variant="ghost" onClick={loadDashboard} disabled={loading} className="h-8 w-8 p-0">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         {metrics.map((metric, index) => (
           <Card key={index} className="relative">
-            <CardContent className="p-3">
+            <CardContent className="p-3 sm:p-3.5">
               <div className="flex items-center justify-between">
                 <metric.icon className={`w-4 h-4 ${metric.color}`} />
-                <span className={`text-xs ${metric.color}`}>{metric.change}</span>
+                <span className={`text-[10px] sm:text-xs font-semibold ${metric.color}`}>{metric.change}</span>
               </div>
-              <div className="mt-2">
-                <p className="text-lg font-bold">{metric.value}</p>
-                <p className="text-xs text-muted-foreground">{metric.title}</p>
+              <div className="mt-2 min-w-0">
+                <p className="text-base sm:text-lg font-bold font-mono truncate">{metric.value}</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{metric.title}</p>
               </div>
             </CardContent>
           </Card>

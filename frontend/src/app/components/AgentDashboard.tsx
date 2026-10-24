@@ -33,6 +33,7 @@ import {
   Moon
 } from 'lucide-react';
 import { api } from '../services/api';
+import fundleloLogo from '../../assets/fundlelo-logo.png';
 import { LiveRouteMap, RouteLead } from './LiveRouteMap';
 import { CustomerDrawer, Customer } from './CustomerDrawer';
 import { getTheme, toggleTheme, ThemeMode } from '../services/theme';
@@ -184,12 +185,12 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
   };
 
   return (
-    <div className="p-4 space-y-6 pb-24">
+    <div className="p-4 space-y-5 pb-28 sm:pb-24">
       {/* Fund Lelo Brand Top Bar */}
       <div className="flex items-center justify-between pb-3 border-b border-border/70">
         <div className="flex items-center gap-2.5">
           <img 
-            src="/fundlelo-logo.png" 
+            src={fundleloLogo} 
             alt="Fund Lelo" 
             className="h-8 w-auto object-contain cursor-pointer transition-transform hover:scale-105 drop-shadow-xs" 
             onClick={() => onNavigate('agent')}
@@ -234,41 +235,41 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
       </div>
 
       {/* Agent Profile Summary Card */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <Avatar className="w-11 h-11 sm:w-12 sm:h-12 ring-2 ring-primary/20 shrink-0">
             <AvatarImage src={agentProfile.avatar || ''} />
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold font-display">
+            <AvatarFallback className="bg-primary text-primary-foreground font-bold font-display text-sm">
               {agentProfile.name.split(' ').map((n: string) => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h1 className="font-bold font-display text-base tracking-tight text-card-foreground">{agentProfile.name}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <Badge variant="outline" className="font-mono text-[11px] font-semibold">{agentProfile.id}</Badge>
+          <div className="min-w-0">
+            <h1 className="font-bold font-display text-sm sm:text-base tracking-tight text-card-foreground truncate">{agentProfile.name}</h1>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <Badge variant="outline" className="font-mono text-[10px] sm:text-[11px] font-semibold">{agentProfile.id}</Badge>
               <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-amber-400 fill-current" />
+                <Star className="w-3 h-3 text-amber-400 fill-current shrink-0" />
                 <span className="text-xs font-mono font-medium">{agentProfile.rating}</span>
               </div>
             </div>
           </div>
         </div>
-        <Badge variant={isShiftActive ? "default" : "secondary"} className={`text-xs ${isShiftActive ? 'bg-emerald-600 text-white' : ''}`}>
+        <Badge variant={isShiftActive ? "default" : "secondary"} className={`text-xs shrink-0 ${isShiftActive ? 'bg-emerald-600 text-white' : ''}`}>
           {isShiftActive ? 'Active Duty' : 'Off Shift'}
         </Badge>
       </div>
 
       {/* Shift Status */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${isShiftActive ? 'bg-green-500' : 'bg-red-500'}`} />
-              <div>
-                <p className="font-medium">
+        <CardContent className="p-3.5 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-3 h-3 rounded-full shrink-0 ${isShiftActive ? 'bg-green-500' : 'bg-red-500'}`} />
+              <div className="min-w-0">
+                <p className="font-medium text-sm sm:text-base">
                   {isShiftActive ? 'On Duty' : 'Off Duty'}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {isShiftActive
                     ? `Started at ${attendance?.punchInTime || 'Morning'}`
                     : (attendance?.punchOutTime ? 'Shift ended' : 'Shift not started')}
@@ -279,15 +280,16 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
               size="sm" 
               variant={isShiftActive ? "destructive" : "default"}
               onClick={handleToggleShift}
+              className="shrink-0 w-full sm:w-auto h-8 text-xs font-semibold"
             >
               {isShiftActive ? (
                 <>
-                  <LogOut className="w-4 h-4 mr-2" />
+                  <LogOut className="w-4 h-4 mr-1.5" />
                   End Shift
                 </>
               ) : (
                 <>
-                  <Clock className="w-4 h-4 mr-2" />
+                  <Clock className="w-4 h-4 mr-1.5" />
                   Start Shift
                 </>
               )}
@@ -382,34 +384,34 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs hover:border-primary/40 transition-all text-left">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Collected</p>
-              <p className="text-xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="bg-card border border-border rounded-xl p-3 sm:p-3.5 shadow-xs hover:border-primary/40 transition-all text-left min-w-0">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">Total Collected</p>
+              <p className="text-lg sm:text-xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-1 truncate">
                 ₹{weeklyStats.totalCollected.toLocaleString()}
               </p>
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-block">↑ 12% vs last week</span>
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-block truncate">↑ 12% vs last week</span>
             </div>
-            <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs hover:border-primary/40 transition-all text-left">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Success Rate</p>
-              <p className="text-xl font-extrabold font-mono text-card-foreground mt-1">
+            <div className="bg-card border border-border rounded-xl p-3 sm:p-3.5 shadow-xs hover:border-primary/40 transition-all text-left min-w-0">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">Success Rate</p>
+              <p className="text-lg sm:text-xl font-extrabold font-mono text-card-foreground mt-1 truncate">
                 {weeklyStats.successRate}%
               </p>
-              <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 mt-0.5 inline-block">Top 10% Tier</span>
+              <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 mt-0.5 inline-block truncate">Top 10% Tier</span>
             </div>
-            <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs hover:border-primary/40 transition-all text-left">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Team Rank</p>
-              <p className="text-xl font-extrabold font-mono text-indigo-600 dark:text-indigo-400 mt-1">
+            <div className="bg-card border border-border rounded-xl p-3 sm:p-3.5 shadow-xs hover:border-primary/40 transition-all text-left min-w-0">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">Team Rank</p>
+              <p className="text-lg sm:text-xl font-extrabold font-mono text-indigo-600 dark:text-indigo-400 mt-1 truncate">
                 #{weeklyStats.rank}
               </p>
-              <span className="text-[10px] font-semibold text-muted-foreground mt-0.5 inline-block">Out of {weeklyStats.totalAgents || 1} agents</span>
+              <span className="text-[10px] font-semibold text-muted-foreground mt-0.5 inline-block truncate">Out of {weeklyStats.totalAgents || 1} agents</span>
             </div>
-            <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs hover:border-primary/40 transition-all text-left">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Daily Average</p>
-              <p className="text-xl font-extrabold font-mono text-card-foreground mt-1">
+            <div className="bg-card border border-border rounded-xl p-3 sm:p-3.5 shadow-xs hover:border-primary/40 transition-all text-left min-w-0">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">Daily Average</p>
+              <p className="text-lg sm:text-xl font-extrabold font-mono text-card-foreground mt-1 truncate">
                 ₹{weeklyStats.averageDaily.toLocaleString()}
               </p>
-              <span className="text-[10px] font-semibold text-muted-foreground mt-0.5 inline-block">Per active shift</span>
+              <span className="text-[10px] font-semibold text-muted-foreground mt-0.5 inline-block truncate">Per active shift</span>
             </div>
           </div>
         </CardContent>
@@ -502,56 +504,56 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
 
       {/* Advanced Features */}
       <Card>
-        <CardHeader>
-          <CardTitle>Advanced Features</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-bold">Advanced Features</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 justify-start h-auto p-3"
+              className="flex items-start sm:items-center gap-2 justify-start h-auto p-2.5 sm:p-3 w-full whitespace-normal text-left min-w-0"
               onClick={() => onNavigate('notifications')}
             >
-              <BellRing className="w-4 h-4" />
-              <div className="text-left">
-                <div className="text-sm font-medium">Auto Reminders</div>
-                <div className="text-xs text-muted-foreground">Due dates & alerts</div>
+              <BellRing className="w-4 h-4 shrink-0 text-primary mt-0.5 sm:mt-0" />
+              <div className="text-left min-w-0 flex-1">
+                <div className="text-xs sm:text-sm font-semibold truncate sm:whitespace-normal">Auto Reminders</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground truncate sm:whitespace-normal">Due dates & alerts</div>
               </div>
             </Button>
             
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 justify-start h-auto p-3"
+              className="flex items-start sm:items-center gap-2 justify-start h-auto p-2.5 sm:p-3 w-full whitespace-normal text-left min-w-0"
               onClick={() => onNavigate('performance')}
             >
-              <Award className="w-4 h-4" />
-              <div className="text-left">
-                <div className="text-sm font-medium">Performance</div>
-                <div className="text-xs text-muted-foreground">Track progress</div>
+              <Award className="w-4 h-4 shrink-0 text-amber-500 mt-0.5 sm:mt-0" />
+              <div className="text-left min-w-0 flex-1">
+                <div className="text-xs sm:text-sm font-semibold truncate sm:whitespace-normal">Performance</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground truncate sm:whitespace-normal">Track progress</div>
               </div>
             </Button>
             
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 justify-start h-auto p-3"
+              className="flex items-start sm:items-center gap-2 justify-start h-auto p-2.5 sm:p-3 w-full whitespace-normal text-left min-w-0"
               onClick={() => onNavigate('tasks')}
             >
-              <ClipboardList className="w-4 h-4" />
-              <div className="text-left">
-                <div className="text-sm font-medium">Tasks & Alerts</div>
-                <div className="text-xs text-muted-foreground">Daily targets</div>
+              <ClipboardList className="w-4 h-4 shrink-0 text-indigo-500 mt-0.5 sm:mt-0" />
+              <div className="text-left min-w-0 flex-1">
+                <div className="text-xs sm:text-sm font-semibold truncate sm:whitespace-normal">Tasks & Alerts</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground truncate sm:whitespace-normal">Daily targets</div>
               </div>
             </Button>
             
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 justify-start h-auto p-3"
+              className="flex items-start sm:items-center gap-2 justify-start h-auto p-2.5 sm:p-3 w-full whitespace-normal text-left min-w-0"
               onClick={() => onNavigate('audit')}
             >
-              <Shield className="w-4 h-4" />
-              <div className="text-left">
-                <div className="text-sm font-medium">Audit Trail</div>
-                <div className="text-xs text-muted-foreground">Activity log</div>
+              <Shield className="w-4 h-4 shrink-0 text-emerald-500 mt-0.5 sm:mt-0" />
+              <div className="text-left min-w-0 flex-1">
+                <div className="text-xs sm:text-sm font-semibold truncate sm:whitespace-normal">Audit Trail</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground truncate sm:whitespace-normal">Activity log</div>
               </div>
             </Button>
           </div>
@@ -560,19 +562,19 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
 
       {/* Location Tracking */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-bold">
+            <MapPin className="w-4 h-4 text-primary" />
             Location Tracking
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Button 
             variant="outline" 
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center justify-center gap-2 h-9 text-xs font-semibold"
             onClick={() => onNavigate('location-history')}
           >
-            <MapPin className="w-4 h-4" />
+            <MapPin className="w-4 h-4 shrink-0" />
             View Location History
           </Button>
           <p className="text-xs text-muted-foreground mt-2 text-center">
@@ -583,19 +585,19 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
 
       {/* Cash Management */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-bold">
+            <DollarSign className="w-4 h-4 text-emerald-600" />
             Cash Management
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Button 
             variant="outline" 
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center justify-center gap-2 h-9 text-xs font-semibold"
             onClick={() => onNavigate('cash-submission')}
           >
-            <DollarSign className="w-4 h-4" />
+            <DollarSign className="w-4 h-4 shrink-0" />
             Manage Cash Collections
           </Button>
           <p className="text-xs text-muted-foreground mt-2 text-center">
@@ -606,19 +608,19 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
 
       {/* Field Collections */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-bold">
+            <Users className="w-4 h-4 text-primary" />
             Field Collections
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Button 
             variant="outline" 
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center justify-center gap-2 h-9 text-xs font-semibold"
             onClick={() => onNavigate('customers')}
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 shrink-0" />
             Start Field Visit
           </Button>
           <p className="text-xs text-muted-foreground mt-2 text-center">
@@ -628,22 +630,22 @@ export function AgentDashboard({ onNavigate }: AgentDashboardProps) {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         <Button 
           variant="outline" 
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 h-auto py-2.5 px-2 text-xs sm:text-sm text-center font-semibold"
           onClick={() => onNavigate('dashboard')}
         >
-          <BarChart3 className="w-4 h-4" />
-          Collection Dashboard
+          <BarChart3 className="w-4 h-4 shrink-0 text-primary" />
+          <span className="truncate">Dashboard</span>
         </Button>
         <Button 
           variant="outline" 
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 h-auto py-2.5 px-2 text-xs sm:text-sm text-center font-semibold"
           onClick={() => onNavigate('reports')}
         >
-          <TrendingUp className="w-4 h-4" />
-          My Reports
+          <TrendingUp className="w-4 h-4 shrink-0 text-emerald-600" />
+          <span className="truncate">My Reports</span>
         </Button>
       </div>
 

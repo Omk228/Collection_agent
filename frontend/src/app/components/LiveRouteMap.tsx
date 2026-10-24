@@ -448,49 +448,49 @@ export function LiveRouteMap({
       } ${className}`}
     >
       {/* Top Floating Control Bar */}
-      <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between pointer-events-none gap-2">
-        <div className="pointer-events-auto flex items-center gap-2 bg-background/90 backdrop-blur-md px-3 py-1.5 rounded-xl border shadow-sm">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold">{title}</span>
-          <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-            {validLeads.length} Stops
+      <div className="absolute top-2.5 left-2.5 right-2.5 z-30 flex items-center justify-between pointer-events-none gap-1.5">
+        <div className="pointer-events-auto flex items-center gap-1.5 bg-background/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl border shadow-sm min-w-0">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span className="text-xs font-semibold truncate max-w-[100px] sm:max-w-none">{title}</span>
+          <Badge variant="secondary" className="text-[10px] h-4.5 px-1 shrink-0">
+            {validLeads.length}
           </Badge>
         </div>
 
-        <div className="pointer-events-auto flex items-center gap-1.5 bg-background/90 backdrop-blur-md p-1 rounded-xl border shadow-sm">
+        <div className="pointer-events-auto flex items-center gap-1 bg-background/90 backdrop-blur-md p-1 rounded-xl border shadow-sm shrink-0">
           {/* Fit Route Button */}
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 px-2 text-xs font-medium"
+            className="h-7 sm:h-8 px-2 text-xs font-medium"
             onClick={fitRouteBounds}
             title="Fit All Stops"
           >
-            <Compass className="w-3.5 h-3.5 mr-1 text-primary" />
-            Fit Route
+            <Compass className="w-3.5 h-3.5 sm:mr-1 text-primary shrink-0" />
+            <span className="hidden sm:inline">Fit Route</span>
           </Button>
 
           {/* Center GPS Button */}
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 px-2 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+            className="h-7 sm:h-8 px-2 text-xs font-medium text-emerald-600 dark:text-emerald-400"
             onClick={centerOnAgent}
             title="Center on My GPS"
           >
-            <Crosshair className="w-3.5 h-3.5 mr-1" />
-            My GPS
+            <Crosshair className="w-3.5 h-3.5 sm:mr-1 shrink-0" />
+            <span className="hidden sm:inline">My GPS</span>
           </Button>
 
           {/* Expand / Minimize Toggle */}
           <Button
             size="icon"
             variant="ghost"
-            className="h-8 w-8"
+            className="h-7 w-7 sm:h-8 sm:w-8"
             onClick={() => setIsExpanded(!isExpanded)}
             title={isExpanded ? 'Minimize Map' : 'Expand Fullscreen'}
           >
-            {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </Button>
         </div>
       </div>

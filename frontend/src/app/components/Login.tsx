@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { api } from '../services/api';
+import fundleloLogo from '../../assets/fundlelo-logo.png';
 
 interface LoginProps {
   onLogin: (agentData: any) => void;
@@ -205,7 +206,7 @@ export function Login({ onLogin }: LoginProps) {
           <div className="flex justify-center items-center py-2">
             <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-xl shadow-purple-950/40">
               <img 
-                src="/fundlelo-logo.png" 
+                src={fundleloLogo} 
                 alt="Fund Lelo" 
                 className="h-12 sm:h-14 w-auto object-contain drop-shadow" 
               />
@@ -310,12 +311,12 @@ export function Login({ onLogin }: LoginProps) {
                       <span>Detecting live GPS coordinates...</span>
                     </div>
                   ) : detectedLocation ? (
-                    <div className="flex items-center gap-1.5 text-foreground">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-medium truncate max-w-[240px]" title={detectedLocation.address}>
+                    <div className="flex items-center gap-1.5 text-foreground min-w-0 flex-wrap">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      <span className="font-medium truncate max-w-[170px] sm:max-w-[240px]" title={detectedLocation.address}>
                         {detectedLocation.address}
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-mono">
+                      <span className="text-[10px] text-muted-foreground font-mono shrink-0">
                         ({detectedLocation.latitude.toFixed(2)}, {detectedLocation.longitude.toFixed(2)})
                       </span>
                     </div>

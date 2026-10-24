@@ -337,34 +337,33 @@ export function FieldCollections({ onNavigate, customerId, customerName }: Field
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
       {/* Header */}
-      <div className="bg-primary p-4">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-primary p-3 sm:p-4">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3">
           <Button 
             variant="ghost" 
             size="sm"
             onClick={() => onNavigate('customers')}
-            className="text-primary-foreground hover:bg-primary-foreground/20"
+            className="text-primary-foreground hover:bg-primary-foreground/20 px-2 shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="flex-1 text-lg font-medium">{loanDetails.customerName}</h1>
+          <h1 className="flex-1 text-base sm:text-lg font-semibold truncate">{loanDetails.customerName}</h1>
         </div>
 
         {/* Customer Info */}
-        <div className="space-y-3">
+        <div className="space-y-2 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            <span className="text-sm">{loanDetails.address}</span>
-            <ChevronDown className="w-4 h-4 ml-auto" />
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{loanDetails.address || 'Address not available'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4" />
-            <span className="text-sm">{loanDetails.phone}</span>
+            <Phone className="w-3.5 h-3.5 shrink-0" />
+            <span>{loanDetails.phone || 'Phone not available'}</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-background text-foreground p-4 space-y-4">
+      <div className="bg-background text-foreground p-3 sm:p-4 space-y-4 pb-28 sm:pb-24">
         {/* Loan Details Section */}
         <Collapsible open={isLoanDetailsOpen} onOpenChange={setIsLoanDetailsOpen}>
           <CollapsibleTrigger asChild>

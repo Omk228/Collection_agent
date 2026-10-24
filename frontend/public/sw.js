@@ -1,18 +1,19 @@
 // Fund Lelo PWA Service Worker
-const CACHE_NAME = 'fundlelo-pwa-v1';
+const CACHE_NAME = 'fundlelo-pwa-v2';
 
-// Static Shell Assets for offline startup
+// Static Shell Assets for offline startup (relative to scope)
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/manifest.json',
-  '/favicon.png',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-maskable-192.png',
-  '/icons/icon-maskable-512.png',
-  '/icons/apple-touch-icon.png'
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './manifest.json',
+  './favicon.png',
+  './fundlelo-logo.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png'
 ];
 
 // Install: Cache essential shell assets
@@ -47,22 +48,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // 1. Only handle GET requests; all mutations pass directly to server
+  // 1. Only handle GET requests
   if (request.method !== 'GET') {
     return;
   }
 
   const url = new URL(request.url);
 
-  // 2. Ignore non-HTTP/HTTPS (e.g., chrome-extension://)
+  // 2. Ignore non-HTTP/HTTPS (e.g. chrome-extension://)
   if (!url.protocol.startsWith('http')) {
     return;
   }
 
-  // 3. ZERO TOUCH FOR API REQUESTS:
-  // Any backend call (/api, backend port 5001, etc.) must go directly to network
-  // and NEVER touch or corrupt cache/database logic.
+  // 3. ZERO TOUCH FOR BACKEND API & CROSS-ORIGIN REQUESTS:
+  // All backend API requests (e.g., https://ca.fundlelo.site/*, /api/*, port 5001)
+  // must pass directly to network and NEVER touch cache.
   if (
+    url.origin !== self.location.origin ||
     url.pathname.startsWith('/api') ||
     url.port === '5001' ||
     url.searchParams.has('nocache')
@@ -71,7 +73,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 4. HTML Navigation (Single Page App routing)
-  // Use Network-First strategy: Always fetch freshest page, fallback to cache if offline
+  // Network-First strategy: Always fetch freshest page, fallback to cached index.html
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -79,29 +81,32 @@ self.addEventListener('fetch', (event) => {
           if (response && response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put('/index.html', responseClone);
+              cache.put(request, responseClone);
             });
           }
           return response;
         })
         .catch(async () => {
-          const cachedIndex = await caches.match('/index.html');
-          if (cachedIndex) {
-            return cachedIndex;
-          }
-          return caches.match('/');
+          const cached = (await caches.match(request)) ||
+                         (await caches.match('./index.html')) ||
+                         (await caches.match('index.html')) ||
+                         (await caches.match('./'));
+          if (cached) return cached;
+          return new Response('Network unavailable. Please check your connection.', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' }
+          });
         })
     );
     return;
   }
 
   // 5. Static Assets (CSS, JS, Fonts, Images)
-  // Stale-While-Revalidate: Serve cache instantly for blazing mobile speed,
-  // then update in background.
+  // Stale-While-Revalidate: Serve cache instantly, update in background
   if (
     url.origin === self.location.origin &&
-    (url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|webp|woff|woff2|ttf|ico)$/) ||
-     url.pathname.startsWith('/assets/'))
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|webp|woff|woff2|ttf|ico|json|webmanifest)$/)
   ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
@@ -122,11 +127,6 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-
-  // Default: Network with cache fallback
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request))
-  );
 });
 
 // Support manual skip waiting message

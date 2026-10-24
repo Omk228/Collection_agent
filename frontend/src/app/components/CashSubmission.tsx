@@ -258,31 +258,33 @@ export function CashSubmission({ onNavigate }: CashSubmissionProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground p-4">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onNavigate('agent')}
-            className="text-primary-foreground hover:bg-primary-foreground/20"
-          >
-            ← Back
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-lg font-medium">Cash Management</h1>
-            <p className="text-sm text-primary-foreground/80">
-              Track and submit collected cash payments
-            </p>
+      <div className="bg-primary text-primary-foreground p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onNavigate('agent')}
+              className="text-primary-foreground hover:bg-primary-foreground/20 px-2 shrink-0"
+            >
+              ← Back
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold leading-tight truncate">Cash Management</h1>
+              <p className="text-xs sm:text-sm text-primary-foreground/80 truncate">
+                Track and submit collected cash payments
+              </p>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-primary-foreground/80">Pending Cash</p>
-            <p className="font-medium">₹{totalPendingAmount.toLocaleString('en-IN')}</p>
+          <div className="bg-primary-foreground/10 sm:bg-transparent rounded-lg px-3 py-1.5 sm:p-0 flex sm:flex-col justify-between items-center sm:items-end">
+            <p className="text-xs text-primary-foreground/80">Pending Cash</p>
+            <p className="text-sm sm:text-base font-bold">₹{totalPendingAmount.toLocaleString('en-IN')}</p>
           </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-card border-b border-border">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="flex">
           {[
             { key: 'collect', label: 'Record Collection', icon: Plus },
@@ -292,20 +294,20 @@ export function CashSubmission({ onNavigate }: CashSubmissionProps) {
             <button
               key={key}
               onClick={() => setActiveTab(key as any)}
-              className={`flex-1 flex items-center justify-center gap-2 p-4 transition-colors ${
+              className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2.5 px-1 sm:p-4 transition-colors min-w-0 ${
                 activeTab === key
                   ? 'border-b-2 border-primary text-primary bg-primary/5'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{label}</span>
+              <Icon className="w-4 h-4 shrink-0" />
+              <span className="text-xs sm:text-sm font-medium truncate text-center">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-4 pb-24">
+      <div className="p-3 sm:p-4 pb-28 sm:pb-24">
         {/* Record Collection Tab */}
         {activeTab === 'collect' && (
           <div className="space-y-6">

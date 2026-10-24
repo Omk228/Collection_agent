@@ -36,7 +36,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-agent-code']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-agent-code', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
 // Body parsers

@@ -420,70 +420,79 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
   };
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="min-h-screen bg-background pb-28 sm:pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-md border-b p-4 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onNavigate('customers')}
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-md border-b p-3 sm:p-4 z-10 shadow-xs">
+        <div className="max-w-4xl mx-auto space-y-2">
+          {/* Top Row: Navigation, Avatar, Name & Call Action */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onNavigate('customers')}
+                className="h-8 w-8 shrink-0 -ml-1 text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <Avatar className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 ring-1 ring-border">
                 <AvatarImage src={enhancedCustomer.photoId} />
-                <AvatarFallback>
+                <AvatarFallback className="text-xs font-bold">
                   {enhancedCustomer.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <h1 className="font-bold font-display text-base tracking-tight text-card-foreground">{enhancedCustomer.name}</h1>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-xs font-mono font-semibold">
-                    {enhancedCustomer.loanId}
-                  </Badge>
-                  <Badge 
-                    variant={isCaseCompleted ? 'default' : getStatusColor(enhancedCustomer.status)}
-                    className={isCaseCompleted ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold' : ''}
-                  >
-                    {isCaseCompleted 
-                      ? 'Completed' 
-                      : (enhancedCustomer.status === 'SENT_TO_COLLECTION_AGENT' ? 'With Collection Agent' : (enhancedCustomer.status.charAt(0).toUpperCase() + enhancedCustomer.status.slice(1)))}
-                  </Badge>
-                  {enhancedCustomer.overdueDays > 0 && !isCaseCompleted && (
-                    <span className="text-sm text-destructive">
-                      {enhancedCustomer.overdueDays} days overdue
-                    </span>
-                  )}
-                  {isCaseCompleted ? (
-                    <Badge variant="outline" className="text-[11px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 flex items-center gap-1 py-0.5">
-                      <CheckCircle2 className="w-3 h-3" /> Completed
-                    </Badge>
-                  ) : !isArrived ? (
-                    <Badge variant="outline" className="text-[11px] bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 flex items-center gap-1 py-0.5">
-                      <Lock className="w-3 h-3" /> Arrival Required
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-[11px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 flex items-center gap-1 py-0.5">
-                      <CheckCircle2 className="w-3 h-3" /> Arrived ({arrivedTime || 'Verified'})
-                    </Badge>
-                  )}
-                </div>
+              <div className="min-w-0">
+                <h1 className="font-bold font-display text-sm sm:text-base tracking-tight text-card-foreground truncate">
+                  {enhancedCustomer.name}
+                </h1>
+                <p className="text-[11px] font-mono text-muted-foreground truncate">
+                  {enhancedCustomer.phone}
+                </p>
               </div>
             </div>
-          </div>
-          <div className="flex gap-2">
+
             <Button 
               size="sm" 
               variant="outline" 
               onClick={() => { window.location.href = `tel:${enhancedCustomer.phone}`; }}
-              className="flex items-center gap-1.5 text-xs font-medium"
+              className="h-8 px-2.5 sm:px-3 text-xs font-semibold shrink-0 gap-1.5"
             >
-              <Phone className="w-3.5 h-3.5 text-green-600" /> Call
+              <Phone className="w-3.5 h-3.5 text-green-600 shrink-0" />
+              <span>Call</span>
             </Button>
+          </div>
+
+          {/* Badges Row: Clean mobile-friendly wrapping */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant="outline" className="text-[10px] sm:text-xs font-mono font-semibold shrink-0">
+              {enhancedCustomer.loanId}
+            </Badge>
+            <Badge 
+              variant={isCaseCompleted ? 'default' : getStatusColor(enhancedCustomer.status)}
+              className={`text-[10px] sm:text-xs shrink-0 ${isCaseCompleted ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold' : ''}`}
+            >
+              {isCaseCompleted 
+                ? 'Completed' 
+                : (enhancedCustomer.status === 'SENT_TO_COLLECTION_AGENT' ? 'With Collection Agent' : (enhancedCustomer.status.charAt(0).toUpperCase() + enhancedCustomer.status.slice(1)))}
+            </Badge>
+            {enhancedCustomer.overdueDays > 0 && !isCaseCompleted && (
+              <Badge variant="destructive" className="text-[10px] sm:text-xs shrink-0 font-medium">
+                {enhancedCustomer.overdueDays} days overdue
+              </Badge>
+            )}
+            {isCaseCompleted ? (
+              <Badge variant="outline" className="text-[10px] sm:text-[11px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 flex items-center gap-1 py-0.5 shrink-0">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" /> Completed
+              </Badge>
+            ) : !isArrived ? (
+              <Badge variant="outline" className="text-[10px] sm:text-[11px] bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 flex items-center gap-1 py-0.5 shrink-0">
+                <Lock className="w-3 h-3 text-amber-600 shrink-0" /> Arrival Required
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[10px] sm:text-[11px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 flex items-center gap-1 py-0.5 shrink-0">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" /> Arrived ({arrivedTime || 'Verified'})
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -674,12 +683,12 @@ export function ComprehensiveCustomerDetail({ customer: propCustomer, onNavigate
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-              <TabsTrigger value="docs" className="text-xs">Documents ({customerDocs.length})</TabsTrigger>
-              <TabsTrigger value="loan" className="text-xs">Loan Details</TabsTrigger>
-              <TabsTrigger value="payments" className="text-xs">Payment History</TabsTrigger>
-              <TabsTrigger value="actions" className="text-xs">Actions</TabsTrigger>
+            <TabsList className="flex w-full overflow-x-auto no-scrollbar gap-1 p-1 bg-muted rounded-xl sm:grid sm:grid-cols-5 justify-start">
+              <TabsTrigger value="overview" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Overview</TabsTrigger>
+              <TabsTrigger value="docs" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Documents ({customerDocs.length})</TabsTrigger>
+              <TabsTrigger value="loan" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Loan Details</TabsTrigger>
+              <TabsTrigger value="payments" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Payment History</TabsTrigger>
+              <TabsTrigger value="actions" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Actions</TabsTrigger>
             </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">

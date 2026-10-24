@@ -153,15 +153,15 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
   }));
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 pb-28 sm:pb-24">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold">Assigned Customers</h1>
+          <h1 className="text-xl font-bold tracking-tight">Assigned Customers</h1>
           <p className="text-xs text-muted-foreground">Cases assigned for field recovery</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-between sm:justify-end">
           {/* List vs Map View Toggle */}
-          <div className="flex items-center bg-muted p-0.5 rounded-lg border">
+          <div className="flex items-center bg-muted p-0.5 rounded-lg border shrink-0">
             <Button
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="sm"
@@ -182,7 +182,7 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
             </Button>
           </div>
 
-          <Button variant="outline" size="sm" onClick={loadCustomers} disabled={isLoading} className="h-8 text-xs">
+          <Button variant="outline" size="sm" onClick={loadCustomers} disabled={isLoading} className="h-8 text-xs shrink-0">
             <RefreshCw className={`w-3.5 h-3.5 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -196,12 +196,12 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
           placeholder="Search by name, phone or loan ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
+          className="pl-9 h-10 text-sm bg-card"
         />
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         {[
           { key: 'all', label: 'All Cases' },
           { key: 'SENT_TO_COLLECTION_AGENT', label: 'Field Recovery' },
@@ -213,7 +213,7 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
             variant={filterStatus === item.key ? "default" : "outline"}
             size="sm"
             onClick={() => setFilterStatus(item.key)}
-            className="whitespace-nowrap"
+            className="whitespace-nowrap h-8 text-xs font-medium shrink-0 rounded-full"
           >
             {item.label}
           </Button>
@@ -238,123 +238,144 @@ export function CustomerList({ onSelectCustomer, onNavigate }: CustomerListProps
 
       {/* Customer List (Visible when in list mode or below map) */}
       <div className={`space-y-3 ${viewMode === 'map' ? 'mt-4' : ''}`}>
-        {filteredCustomers.map((customer) => (
-          <Card 
-            key={customer.id} 
-            className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
-            onClick={() => onSelectCustomer(customer)}
-          >
-            <CardContent className="p-3.5 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3 mb-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <h3 className="font-bold font-display text-card-foreground text-sm tracking-tight truncate max-w-[220px] sm:max-w-none">{customer.name}</h3>
-                    <Badge variant={getStatusColor(customer.status) as any} className="shrink-0">
-                      {getStatusText(customer.status)}
-                    </Badge>
-                  </div>
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1 font-mono">
-                      <Phone className="w-3 h-3 text-muted-foreground shrink-0" />
-                      <span>{customer.phone}</span>
+        {filteredCustomers.map((customer) => {
+          const isDone = Boolean(
+            (customer as any).isPaid || 
+            customer.amountDue <= 0 || 
+            customer.status === 'Completed' || 
+            customer.status === 'completed' || 
+            customer.status === 'paid' || 
+            customer.status === 'closed' || 
+            customer.status === 'Settled' || 
+            customer.status === 'SETTLED' || 
+            customer.status === 'CLOSED'
+          );
+
+          return (
+            <Card 
+              key={customer.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden border bg-card"
+              onClick={() => onSelectCustomer(customer)}
+            >
+              <CardContent className="p-3.5 sm:p-4">
+                {/* Header: Name, Loan ID and Status */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="font-bold font-display text-card-foreground text-sm tracking-tight truncate max-w-[200px] sm:max-w-none">
+                        {customer.name}
+                      </h3>
+                      <Badge variant="outline" className="font-mono text-[10px] shrink-0 font-semibold">
+                        {customer.loanId}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-1 min-w-0">
-                      <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                      <span className="truncate">{customer.address}</span>
+                    <div className="space-y-0.5 text-xs text-muted-foreground mt-1">
+                      <div className="flex items-center gap-1 font-mono">
+                        <Phone className="w-3 h-3 text-muted-foreground shrink-0" />
+                        <span>{customer.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+                        <span className="truncate">{customer.address}</span>
+                      </div>
                     </div>
                   </div>
+
+                  <Badge variant={getStatusColor(customer.status) as any} className="shrink-0 text-[10px] sm:text-xs">
+                    {getStatusText(customer.status)}
+                  </Badge>
                 </div>
 
-                <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {((customer as any).isPaid || customer.amountDue <= 0 || customer.status === 'Completed' || customer.status === 'completed' || customer.status === 'paid' || customer.status === 'closed' || customer.status === 'Settled' || customer.status === 'SETTLED' || customer.status === 'CLOSED') ? (
-                      <Badge 
-                        variant="paid" 
-                        className="h-7 sm:h-8 px-2.5 sm:px-3 py-1 font-bold text-xs gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-xs flex items-center shrink-0"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        Completed
+                {/* Amount and DPD details */}
+                <div className="flex items-center justify-between py-2 px-3 my-2.5 rounded-lg bg-muted/40 border border-border/50 text-xs">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Amount Due</span>
+                    <span className="font-extrabold font-mono text-emerald-600 dark:text-emerald-400 text-sm sm:text-base">
+                      ₹{customer.amountDue.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-center min-w-0">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Last Payment</span>
+                    <span className="font-mono text-xs text-foreground font-medium truncate block">
+                      {customer.lastPayment || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Delinquency</span>
+                    {customer.daysPastDue > 0 ? (
+                      <Badge variant="outline" className="text-[10px] font-mono font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 border-rose-300">
+                        {customer.daysPastDue} DPD
                       </Badge>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="h-7 sm:h-8 font-bold shadow-xs text-xs bg-primary hover:bg-primary-hover active:scale-[0.98] transition-all"
-                        onClick={(e) => handleOpenDrawer(customer, e)}
-                      >
-                        <DollarSign className="w-3.5 h-3.5 mr-1" />
-                        Collect & Pay
-                      </Button>
+                      <span className="text-xs text-emerald-600 font-medium">On Track</span>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 sm:h-8 text-xs font-semibold px-2.5 sm:px-3"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectCustomer(customer);
-                      }}
-                    >
-                      Details
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 sm:h-8 text-xs font-semibold px-2.5 sm:px-3"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        localStorage.setItem('selectedCustomerForVisit', JSON.stringify(customer));
-                        onNavigate('field-collections');
-                      }}
-                    >
-                      <Users className="w-3 h-3 mr-1" />
-                      Visit
-                    </Button>
                   </div>
+                </div>
 
-                  {((customer as any).isPaid || customer.amountDue <= 0 || customer.status === 'paid' || customer.status === 'closed' || customer.status === 'Settled' || customer.status === 'SETTLED' || customer.status === 'CLOSED') && (
+                {/* Action Buttons: Mobile First Flex Layout */}
+                <div className="flex items-center gap-2 pt-2 border-t border-border/70 flex-wrap sm:flex-nowrap">
+                  {isDone ? (
+                    <Badge 
+                      variant="paid" 
+                      className="h-8 px-3 font-bold text-xs gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-xs flex items-center shrink-0 flex-1 sm:flex-none justify-center"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      Completed
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="h-8 font-bold shadow-xs text-xs bg-primary hover:bg-primary/90 flex-1 sm:flex-none justify-center"
+                      onClick={(e) => handleOpenDrawer(customer, e)}
+                    >
+                      <DollarSign className="w-3.5 h-3.5 mr-1 shrink-0" />
+                      Collect & Pay
+                    </Button>
+                  )}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs font-semibold px-2.5 sm:px-3 flex-1 sm:flex-none justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectCustomer(customer);
+                    }}
+                  >
+                    Details
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 text-xs font-semibold px-2.5 sm:px-3 flex-1 sm:flex-none justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      localStorage.setItem('selectedCustomerForVisit', JSON.stringify(customer));
+                      onNavigate('field-collections');
+                    }}
+                  >
+                    <Users className="w-3 h-3 mr-1 shrink-0" />
+                    Visit
+                  </Button>
+                </div>
+
+                {isDone && (
+                  <div className="mt-2 pt-1.5 border-t border-border/40">
                     <Badge 
                       variant="outline" 
-                      className="w-full sm:w-auto h-auto min-h-7 py-1 px-2.5 font-semibold text-[11px] sm:text-xs gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-xs flex items-center justify-start whitespace-normal text-left max-w-full"
+                      className="w-full h-auto py-1 px-2 font-medium text-[11px] gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 flex items-center justify-start text-left"
                     >
-                      <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                      <span className="leading-tight">Sent to Accounts for Verification</span>
+                      <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <span className="truncate">Sent to Accounts for Verification</span>
                     </Badge>
-                  )}
-                </div>
-              </div>
-              
-              <div 
-                className="flex justify-between items-center pt-3 border-t border-border cursor-pointer hover:bg-secondary/40 transition-colors rounded-b-lg -mx-2 -mb-2 px-2 pb-1"
-                onClick={() => handleOpenDrawer(customer)}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="text-left">
-                    <div className="flex items-center gap-1">
-                      <span className="font-extrabold font-mono text-emerald-600 dark:text-emerald-400 text-sm">
-                        ₹{customer.amountDue.toLocaleString()}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Amount Due</span>
                   </div>
-                  <div className="text-left">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-xs font-mono font-medium text-foreground">{customer.lastPayment}</span>
-                    </div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Last Payment</span>
-                  </div>
-                </div>
-                
-                {customer.daysPastDue > 0 && (
-                  <Badge variant="outline" className="text-xs font-mono">
-                    {customer.daysPastDue} DPD
-                  </Badge>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {filteredCustomers.length === 0 && !isLoading && (

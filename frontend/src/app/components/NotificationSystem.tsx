@@ -195,29 +195,31 @@ export function NotificationSystem({ onNavigate }: NotificationSystemProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24">
+    <div className="min-h-screen bg-background p-4 pb-28 sm:pb-24">
       {/* Header */}
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate('agent')}
-          className="mr-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="flex-1">Auto-Reminder System</h1>
-        <Button size="sm" onClick={() => setIsCreatingRule(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('agent')}
+            className="h-8 w-8 p-0 shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-lg font-bold truncate">Auto-Reminder System</h1>
+        </div>
+        <Button size="sm" onClick={() => setIsCreatingRule(true)} className="h-8 text-xs shrink-0">
+          <Plus className="h-3.5 w-3.5 mr-1" />
           New Rule
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="rules">Rules</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
+          <TabsTrigger value="rules" className="text-xs">Rules</TabsTrigger>
+          <TabsTrigger value="pending" className="text-xs">Pending</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

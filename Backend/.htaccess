@@ -1,0 +1,31 @@
+# ==============================================================================
+# CloudLinux Phusion Passenger Node.js Configuration for ca.fundlelo.site
+# ==============================================================================
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/fundlelo/public_html/ca.fundlelo.site"
+PassengerBaseURI "/"
+PassengerNodejs "/home/fundlelo/nodevenv/public_html/ca.fundlelo.site/18/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# ==============================================================================
+# Security & Header Passing
+# ==============================================================================
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Pass Authorization Header to Node.js application (Crucial for JWT Bearer Tokens)
+  RewriteCond %{HTTP:Authorization} ^(.*)
+  RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+  # Pass Agent Code & Custom Headers
+  RewriteCond %{HTTP:x-agent-code} ^(.*)
+  RewriteRule .* - [e=HTTP_X_AGENT_CODE:%1]
+</IfModule>
+
+# Block direct browser access to sensitive system, environment, and lock files
+<FilesMatch "^\.(env|git|lock)|package\.json|package-lock\.json$">
+  Require all denied
+</FilesMatch>

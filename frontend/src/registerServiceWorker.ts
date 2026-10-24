@@ -3,7 +3,8 @@
 export function registerServiceWorker() {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swUrl = '/sw.js';
+      const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+      const swUrl = `${baseUrl}/sw.js`;
 
       navigator.serviceWorker
         .register(swUrl)

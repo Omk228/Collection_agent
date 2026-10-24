@@ -254,24 +254,24 @@ export function AgentTools({ onNavigate }: AgentToolsProps) {
   return (
     <div className="min-h-screen bg-background pb-28">
       {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur border-b p-4 z-10">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center gap-3">
+      <div className="sticky top-0 bg-background/95 backdrop-blur border-b p-3 sm:p-4 z-10 shadow-xs">
+        <div className="flex items-center justify-between max-w-4xl mx-auto gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('agent')}
-              className="h-9 w-9"
+              className="h-8 w-8 shrink-0 text-foreground"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <History className="w-5 h-5 text-primary" />
-                <h1 className="text-lg font-bold">History & Panel Logs</h1>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <History className="w-4 h-4 text-primary shrink-0" />
+                <h1 className="text-base sm:text-lg font-bold truncate">History & Panel Logs</h1>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Field visits, collection records & CRM panel logs
+              <p className="text-[11px] text-muted-foreground truncate">
+                Field visits, collection records & logs
               </p>
             </div>
           </div>
@@ -281,10 +281,10 @@ export function AgentTools({ onNavigate }: AgentToolsProps) {
             size="sm"
             onClick={loadHistoryData}
             disabled={loading}
-            className="h-8 gap-1.5 text-xs font-medium"
+            className="h-8 px-2.5 sm:px-3 text-xs font-medium shrink-0 gap-1.5"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -297,12 +297,12 @@ export function AgentTools({ onNavigate }: AgentToolsProps) {
             placeholder="Search by customer name, action, loan ID or receipt..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-card"
+            className="pl-9 bg-card h-10 text-sm"
           />
         </div>
 
         {/* Filter Chips */}
-        <div className="flex gap-2 items-center overflow-x-auto pb-1">
+        <div className="flex gap-2 items-center overflow-x-auto no-scrollbar pb-1">
           <Button
             variant={filterType === 'all' ? 'default' : 'outline'}
             size="sm"

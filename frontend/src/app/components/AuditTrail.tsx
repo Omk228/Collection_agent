@@ -207,20 +207,22 @@ export function AuditTrail({ onNavigate }: AuditTrailProps) {
   const filteredEntries = getFilteredEntries();
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24">
+    <div className="min-h-screen bg-background p-4 pb-28 sm:pb-24">
       {/* Header */}
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate('agent')}
-          className="mr-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="flex-1">Audit Trail</h1>
-        <Button size="sm" onClick={exportAuditLog}>
-          <Download className="h-4 w-4 mr-2" />
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('agent')}
+            className="h-8 w-8 p-0 shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-lg font-bold truncate">Audit Trail</h1>
+        </div>
+        <Button size="sm" onClick={exportAuditLog} className="h-8 text-xs shrink-0">
+          <Download className="h-3.5 w-3.5 mr-1" />
           Export
         </Button>
       </div>
@@ -300,11 +302,11 @@ export function AuditTrail({ onNavigate }: AuditTrailProps) {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="recent">Recent ({filteredEntries.length})</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="data">Data Access</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto no-scrollbar gap-1 p-1 bg-muted rounded-xl sm:grid sm:grid-cols-4 justify-start">
+          <TabsTrigger value="recent" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Recent ({filteredEntries.length})</TabsTrigger>
+          <TabsTrigger value="security" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Security</TabsTrigger>
+          <TabsTrigger value="data" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Data Access</TabsTrigger>
+          <TabsTrigger value="payments" className="text-xs px-3 py-1.5 shrink-0 whitespace-nowrap">Payments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recent" className="space-y-3">

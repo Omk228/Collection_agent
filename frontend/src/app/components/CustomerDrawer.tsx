@@ -45,7 +45,7 @@ import {
   FileText
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
-import { api } from '../services/api';
+import { api, resolveSecureDocUrl } from '../services/api';
 import { LiveRouteMap, RouteLead } from './LiveRouteMap';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { CustomerDocumentModal, CustomerDocument } from './CustomerDocumentModal';
@@ -623,18 +623,18 @@ export function CustomerDrawer({
               </div>
 
               <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)}>
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="collect" className="text-xs flex items-center gap-1.5">
-                    <DollarSign className="w-3.5 h-3.5" /> Collect
+                <TabsList className="flex w-full overflow-x-auto no-scrollbar gap-1 p-1 bg-muted rounded-lg sm:grid sm:grid-cols-4 justify-start">
+                  <TabsTrigger value="collect" className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 shrink-0 whitespace-nowrap">
+                    <DollarSign className="w-3.5 h-3.5 shrink-0" /> Collect
                   </TabsTrigger>
-                  <TabsTrigger value="details" className="text-xs flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5" /> Details
+                  <TabsTrigger value="details" className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 shrink-0 whitespace-nowrap">
+                    <User className="w-3.5 h-3.5 shrink-0" /> Details
                   </TabsTrigger>
-                  <TabsTrigger value="docs" className="text-xs flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5" /> Docs ({customerDocs.length})
+                  <TabsTrigger value="docs" className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 shrink-0 whitespace-nowrap">
+                    <FileText className="w-3.5 h-3.5 shrink-0" /> Docs ({customerDocs.length})
                   </TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs flex items-center gap-1.5">
-                    <History className="w-3.5 h-3.5" /> History ({paymentHistory.length})
+                  <TabsTrigger value="history" className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 shrink-0 whitespace-nowrap">
+                    <History className="w-3.5 h-3.5 shrink-0" /> History ({paymentHistory.length})
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -695,7 +695,7 @@ export function CustomerDrawer({
                         <div className="text-xs pt-1">
                           <span className="text-muted-foreground block mb-1">Attached Proof:</span>
                           <a
-                            href={`http://localhost:5001${paymentResult.proofUrl}`}
+                            href={resolveSecureDocUrl(paymentResult.proofUrl)}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
@@ -1179,7 +1179,7 @@ export function CustomerDrawer({
                           )}
                           {p.receipt_url && (
                             <a
-                              href={p.receipt_url.startsWith('http') ? p.receipt_url : `http://localhost:5001${p.receipt_url}`}
+                              href={resolveSecureDocUrl(p.receipt_url)}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 text-primary hover:underline text-[11px] pt-1"

@@ -164,20 +164,22 @@ export function AgentPerformance({ onNavigate }: AgentPerformanceProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24">
+    <div className="min-h-screen bg-background p-3 sm:p-4 pb-28 sm:pb-24">
       {/* Header */}
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate('agent')}
-          className="mr-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="flex-1">Performance Tracking</h1>
+      <div className="flex items-center justify-between gap-2 mb-4 sm:mb-6">
+        <div className="flex items-center min-w-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('agent')}
+            className="mr-1.5 px-2 shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-base sm:text-lg font-semibold truncate">Performance Tracking</h1>
+        </div>
         <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-28 sm:w-32 shrink-0 text-xs sm:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -190,63 +192,63 @@ export function AgentPerformance({ onNavigate }: AgentPerformanceProps) {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="comparison">Compare</TabsTrigger>
-          <TabsTrigger value="achievements">Awards</TabsTrigger>
+        <TabsList className="w-full flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-4 h-auto p-1">
+          <TabsTrigger value="overview" className="flex-1 py-1.5 px-2 text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
+          <TabsTrigger value="trends" className="flex-1 py-1.5 px-2 text-xs sm:text-sm whitespace-nowrap">Trends</TabsTrigger>
+          <TabsTrigger value="comparison" className="flex-1 py-1.5 px-2 text-xs sm:text-sm whitespace-nowrap">Compare</TabsTrigger>
+          <TabsTrigger value="achievements" className="flex-1 py-1.5 px-2 text-xs sm:text-sm whitespace-nowrap">Awards</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4">
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-muted-foreground">Collections</span>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground truncate">Collections</span>
                 </div>
-                <div className="text-2xl font-semibold">
+                <div className="text-lg sm:text-2xl font-bold truncate">
                   {formatCurrency(performanceMetrics.monthly.totalCollections)}
                 </div>
-                <div className="flex items-center gap-1 text-sm">
-                  <TrendingUp className="h-3 w-3 text-green-600" />
-                  <span className="text-green-600">+12% vs last month</span>
+                <div className="flex items-center gap-1 text-[11px] sm:text-xs mt-0.5 sm:mt-1">
+                  <TrendingUp className="h-3 w-3 text-green-600 shrink-0" />
+                  <span className="text-green-600 truncate">+12% vs last mo</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-muted-foreground">Target Achievement</span>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+                  <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground truncate">Target Achieved</span>
                 </div>
-                <div className="text-2xl font-semibold">
+                <div className="text-lg sm:text-2xl font-bold truncate">
                   {performanceMetrics.monthly.targetAchievement}%
                 </div>
-                <Progress value={performanceMetrics.monthly.targetAchievement} className="mt-2" />
+                <Progress value={performanceMetrics.monthly.targetAchievement} className="h-1.5 sm:h-2 mt-1.5 sm:mt-2" />
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm text-muted-foreground">Team Rank</span>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+                  <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600 shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground truncate">Team Rank</span>
                 </div>
-                <div className="text-2xl font-semibold">
+                <div className="text-lg sm:text-2xl font-bold truncate">
                   #{performanceMetrics.monthly.rank}/{performanceMetrics.monthly.totalAgents}
                 </div>
-                <div className="text-sm text-muted-foreground">Top 20% performer</div>
+                <div className="text-[11px] sm:text-xs text-muted-foreground truncate mt-0.5 sm:mt-1">Top 20% performer</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm text-muted-foreground">Bonus Earned</span>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+                  <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600 shrink-0" />
+                  <span className="text-xs sm:text-sm text-muted-foreground truncate">Bonus Earned</span>
                 </div>
                 <div className="text-2xl font-semibold">
                   ₹{(performanceMetrics.monthly.bonusEarned / 1000).toFixed(0)}K
